@@ -1,0 +1,5 @@
+include KT17/__data/libkt17/*.cc
+include KT17/__data/libkt17/*.h
+include KT17/__data/libkt17/makefile
+include KT17/__data/libkt17/*.so
+
