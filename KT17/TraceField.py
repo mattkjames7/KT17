@@ -13,7 +13,7 @@ LimTypes include:
 
 New LimType options
 	Each = 1 bit
-	Default: 1111000 (Big Endian) = 15
+	Default: 1111000 (Big Endian[I think]) = 15
 	MP						+1
 	Planet					+2
 	Dipole of Planet		+4

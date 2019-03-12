@@ -315,10 +315,9 @@ void kt17Barray(int n, double *xin, double *yin, double *zin, double *Bx, double
 void kt17(double x, double y, double z, double *Bx, double *By, double *Bz, double Rsun, double DistIndex) {
 	double f, Rsm, T1, T2;
 	f = 2.06873 - 0.00279*DistIndex;
-	Rsm = pow(f*Rsun,1.0/3.0);
+	Rsm = f*pow(Rsun,1.0/3.0);
 	T1 = 6.495 + 0.0229*DistIndex;
 	T2 = 1.6245 + 0.0088*DistIndex;
-	
 	kt17B(x,y,z,Bx,By,Bz,Rsm,T1,T2);
 }
 /*
