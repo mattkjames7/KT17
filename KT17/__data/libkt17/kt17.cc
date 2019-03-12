@@ -303,7 +303,7 @@ void kt17B(double xin, double yin, double zin, double *Bx, double *By, double *B
 void kt17Barray(int n, double *xin, double *yin, double *zin, double *Bx, double *By, double *Bz, int nP, int Plen, double *Params) {
 	int i, pi;
 	for (i=0;i<n;i++) {
-		pi = (i % Plen/nP)*nP; //position in the Params array to start
+		pi = (i % (Plen/nP))*nP; //position in the Params array to start
 		if (nP == 3) {
 			kt17B(xin[i],yin[i],zin[i],&Bx[i],&By[i],&Bz[i],Params[pi],Params[pi+1],Params[pi+2]);
 		} else {

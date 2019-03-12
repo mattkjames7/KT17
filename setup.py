@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="KT17",
-    version="0.0.2",
+    version="0.0.3",
     author="Matthew Knight James",
     author_email="mattkjames7@gmail.com",
     description="KT17/KT14 magnetic field model for Mercury written in C++ with a Python wrapper. See Korth et al., 2015 (JGR) and Korth et al., 2017 (GRL) for more details.",
