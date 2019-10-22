@@ -6,6 +6,12 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 ocbfile = os.path.dirname(__file__)+'/__data/OCB.bin'
 
 def GetOCB():
+	'''
+	Tries to calculate where the open-closed field line boundary is for 
+	MLT 0.0-24.0 then saves it to a file.
+	
+	'''
+
 
 	mlt = np.zeros(24,dtype='float32')-1
 	lctn = np.zeros(24,dtype='float32')-1
@@ -28,15 +34,15 @@ def GetOCB():
 		
 		j = np.where((Tr.Lshell == np.nanmax(Tr.Lshell)) & np.isfinite(Tr.FlLen))[0]
 		mlt[i] = T[i]/15
-		if j > 0:
+		if j.size > 0:
 			#mlt[i]=trace.mltn[j]
 			#mlat[i]=trace.mlatn[j]
 			
 			mlat[i] = L[j]
-			latn[i] = trace.latn[j]
-			lats[i] = trace.lats[j]
-			lctn[i] = trace.lctn[j]
-			lcts[i] = trace.lcts[j]
+			latn[i] = Tr.GlatN[j]
+			lats[i] = Tr.GlatS[j]
+			lctn[i] = Tr.GltN[j]
+			lcts[i] = Tr.GltS[j]
 		else:
 			lctn[i] = T[i]/15
 			lcts[i] = T[i]/15
@@ -50,8 +56,21 @@ def GetOCB():
 	lats.tofile(f)
 	f.close()	
 
-def ReadOCBFile(InterpNoon=False):
+def ReadOCBFile():
+	'''
+	Reads the file created in GetOCB()
 	
+	Returns
+	=======
+	numpy.recarray with the following fields:-
+	
+	Mlt:	Magnetic local time of the boundary.
+	LctN:	Local time in the northern hemisphere.
+	LctS:	Local time in the southern hemisphere.
+	Mlat:	Invariant latitude of the boundary.
+	LatN:	Latitude of the northern boundary.
+	LatS:	Latitude of the southern boundary.
+	'''
 	if not os.path.isfile(ocbfile):
 		GetOCB()
 	

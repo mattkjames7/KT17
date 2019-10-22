@@ -31,7 +31,7 @@ class TraceField(object):
 	def __init__(self,x0,y0,z0,Params=[1.42,7.37,2.16],maxlen=1000,
 				initstep=0.01,maxstep=0.05,LimType=15,
 				FlattenSingleTraces=True,SmoothSurfaceTransition=False,
-				AssumeOutsidePlanet=True):
+				AssumeOutsidePlanet=True,**kwargs):
 
 		'''
 		The TraceField object performs field line traces from initial

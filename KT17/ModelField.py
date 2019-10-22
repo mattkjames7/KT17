@@ -4,6 +4,27 @@ from ._CFunctions import _Ckt17Barray
 ###### File created automatically using PopulateCtypes ######
 
 def ModelField(x, y, z, Params=[1.42,7.37,2.16]):
+	'''
+	Returns the KT14/KT17 model field at one or more positions within
+	Mercury's magnetosphere.
+	
+	Inputs
+	=======
+	x,y,z:	Scalars or arrays of the Cartesian position(s) in the MSM
+		coordinate system.
+	Params:	Either 2 or 3 element array containing the parameters which 
+		control the model field:
+			KT14: Three parameters [Rsm,t1,t2], where
+				Rsm = subsolar distance of the MP in R_m
+				t1,t2 = tail current scaling parameters
+			KT17: Two parameters [Rsun,DistIndex], where
+				Rsun = radial distance of mercury from the Sun in AU
+				DistIndex = Anderson et al 2013 disturbance index.
+	
+	Returns
+	=======
+	Bx,By,Bz:	Magnetic field vectors in MSM coordinate system.
+	'''
 
 	#Convert input variables to appropriate numpy dtype:
 	_n = np.int32(np.size(x))
