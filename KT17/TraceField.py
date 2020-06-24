@@ -136,8 +136,13 @@ class TraceField(object):
 		_Rmso = np.zeros(_n*_maxlen,dtype='float64')+np.nan
 		_FP = np.zeros(_n*20,dtype='float64')+np.nan
 		_LimType = np.int32(LimType)
-		_Params = np.float64(Params)
-		_nParams = np.int32(_Params.size)
+		Params = np.array(Params)
+		if len(Params.shape) == 1:
+			_Params = np.float64(Params)
+			_nParams = np.int32(_Params.size)
+		else:
+			_Params = np.float64(Params).flatten()
+			_nParams = np.int32(Params.shape[1])
 		#call the C++ function 
 		_Ckt17MultiTrace(_x0, _y0, _z0, _n, _maxlen, _initstep, _maxstep,
 						_LimType, _nParams, _Params, _nstep, _x, _y, _z,
