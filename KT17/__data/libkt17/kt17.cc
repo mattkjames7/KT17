@@ -239,9 +239,12 @@ double kt17QuasiHarrisThickness(double x, double y) {
 
 void kt17QuasiHarrisField(double x, double y, double z, double *Bx, double *By, double *Bz) {
 	double d = kt17QuasiHarrisThickness(x,y);
-	*Bx = (2.0/d)*tanh(z/d);
+	double dddx = deltax/SxQH*exp(x/SxQH);
+	double zpzi = z+zshift;
+    double zmzi = z-zshift;
+	*Bx = (tanh(z/d)-0.5*(tanh(zmzi/d)+tanh(zpzi/d)))/d;
 	*By = 0.0;
-	*Bz = ((z*2.0)/pow(d,2.0))*tanh(z/d)*((deltax/SxQH)*exp(x/(SxQH)));
+	*Bz = (z*tanh(z/d)-0.5*(zmzi*tanh(zmzi/d)+zpzi*tanh(zpzi/d)))*dddx/pow(d,2.0);
 	return;
 }
 
@@ -264,17 +267,11 @@ void kt17QuasiHarrisShield(double x, double y, double z, double *Bx, double *By,
 
 void kt17QuasiHarrisB(double x, double y, double z, double *Bx, double *By, double *Bz, double T2) {
 	double Fx, Fy, Fz, Hx, Hy, Hz;
-	double F1x, F1y, F1z, F2x, F2y, F2z;
 	kt17QuasiHarrisField(x,y,z,&Fx,&Fy,&Fz);
-	kt17QuasiHarrisField(x,y,z+zshift,&F1x,&F1y,&F1z);
-	kt17QuasiHarrisField(x,y,z-zshift,&F2x,&F2y,&F2z);
 	kt17QuasiHarrisShield(x,y,z,&Hx,&Hy,&Hz);
-	/* A fudge here, apparently the image current sheets must be 
-	 * divided by 2 before being added to the rest. Then everything
-	 * by 2.*/ 
-	*Bx = 0.5*T2*(Fx - Hx + 0.5*(F1x + F2x));
-	*By = 0.5*T2*(Fy - Hy + 0.5*(F1y + F2y));
-	*Bz = 0.5*T2*(Fz - Hz - 0.5*(F1z + F2z));
+	*Bx = T2*(Fx - Hx);
+	*By = T2*(Fy - Hy);
+	*Bz = T2*(Fz - Hz);
 
 }
 
