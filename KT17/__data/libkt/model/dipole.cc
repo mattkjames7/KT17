@@ -83,27 +83,7 @@ void DipoleShield(	double x, double y, double z,
 					double *Bx, double *By, double *Bz) {
 	/* this calculates the shielding field using equation 12 of 
 	 * Korth et al 2015 */
-	Bx[0] = 0.0;
-	By[0] = 0.0;
-	Bz[0] = 0.0;
-	int i, k;
-	double pik, Aexppikx, cosdpiy, cosdpkz, sindpiy, sindpkz,dpi2;
-	for (i=0;i<4;i++) {
-		dpi2 = DipP[i]*DipP[i];
-		for (k=0;k<4;k++) {
-			pik = sqrt(dpi2 + DipP[k]*DipP[k]);
-			Aexppikx = DipA[i][k]*exp(pik*x);
-			cosdpiy = cos(DipP[i]*y);
-			cosdpkz = cos(DipP[k]*z);
-			sindpiy = sin(DipP[i]*y);
-			sindpkz = sin(DipP[k]*z);
-			
-			Bx[0] += Aexppikx*pik*cosdpiy*sindpkz;
-			By[0] +=-Aexppikx*DipP[i]*sindpiy*sindpkz;
-			Bz[0] += Aexppikx*cosdpiy*DipP[k]*cosdpkz;
-		}
-	}
-	return;
+	ShieldField(x,y,z,4,DipA,DipP,Bx,By,Bz);
 }
 
 
