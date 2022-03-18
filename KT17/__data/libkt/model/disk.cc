@@ -2,8 +2,6 @@
 
 const double xshift = 0.3; // shift in x-direction
 const double sc = 7.0;		//scaling factor
-const double t1 = 7.64;	//tail disk current magnitude
-const double t2 = 2.06;	//harris sheet current magntiude
 const double d0 = 0.09;	//half-width of current sheet in Z at inner edge of tail current [Rm]
 const double deltax = 1.0;//expansion magnitudes of tail current sheet in x direction
 const double deltay = 0.1;//expansion magnitudes of tail current sheet in y direction
@@ -200,7 +198,7 @@ void DiskShield(	double x, double y, double z,
  *
  * 
  * ********************************************************************/
-void Disk(	double x, double y, double z, 
+void Disk(	double x, double y, double z, double t1,
 			double *Bx, double *By, double *Bz) {
 	
 	double Fx, Fy, Fz, Sx, Sy, Sz;
@@ -208,10 +206,9 @@ void Disk(	double x, double y, double z,
 	/* get disk field and its corresponding shielding field, then add */
 	DiskField(x,y,z,&Fx,&Fy,&Fz);
 	DiskShield(x,y,z,&Sx,&Sy,&Sz);
-	Bx[0] = Fx - Sx;
-	By[0] = Fy - Sy;
-	Bz[0] = Fz - Sz;
-
+	Bx[0] = t1*(Fx - Sx);
+	By[0] = t1*(Fy - Sy);
+	Bz[0] = t1*(Fz - Sz);
 	
 }
 
