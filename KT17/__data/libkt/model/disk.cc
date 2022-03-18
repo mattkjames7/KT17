@@ -180,7 +180,7 @@ void DiskShield(	double x, double y, double z,
 
 
 /***********************************************************************
- * NAME : 		void Disk(x,y,z,Bx,By,Bz)
+ * NAME : 		void Disk(x,y,z,t1,Bx,By,Bz)
  * 
  * DESCRIPTION : 	Calculates Mercury's disk field at a given 
  * 					postion including the magnetopause shielding
@@ -190,6 +190,8 @@ void DiskShield(	double x, double y, double z,
  * 			double x	x-MSM coordinate (in Rm).
  * 			double y	y-MSM coordinate (in Rm).
  * 			double z	z-MSM coordinate (in Rm).
+ * 			double t1	Scale factor for the disk field contribution to 
+ * 						the model.
  *
  * OUTPUTS :
  * 			double *Bx	x-component of Mercury's disk field (in nT).
