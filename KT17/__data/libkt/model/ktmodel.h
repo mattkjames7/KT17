@@ -13,10 +13,18 @@ class KTModel {
 		~KTModel();
 		KTModel(const KTModel& obj);
 		
+		/* functions to alter model parameters */
 		void SetParams(double Rsm, double t1, double t2);
 		void SetParams(double Rsun, double DistIndex);
 		void GetParams(double *Rsm, double *t1, double *t2);
 		void GetParams(double *Rsun, double *DistIndex);
+		
+		/* this function will call the model and provide a field vector*/
+		void Field(	double x, double y, double z, 
+					double *Bx, double *By, double *Bz);
 	private:
 	
+		/* some local model parameters */
+		double Rsm_, t1_, t2_, Rsun_, DistIndex_;
+		
 }
