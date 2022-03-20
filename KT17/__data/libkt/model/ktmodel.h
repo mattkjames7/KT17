@@ -27,4 +27,4 @@ class KTModel {
 		/* some local model parameters */
 		double Rsm_, t1_, t2_, Rsun_, DistIndex_;
 		
-}
+};

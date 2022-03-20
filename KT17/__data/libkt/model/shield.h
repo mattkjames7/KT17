@@ -2,7 +2,7 @@
 #define __SHIELD_H__
 #include <stdio.h>
 #include <stdlib.h>
-#include <math>
+#include <math.h>
 #endif
 
 
@@ -28,5 +28,5 @@
  * 
  * ********************************************************************/
 void ShieldField(	double x, double y, double z,
-					int n, double A[][n], double P[],
+					int n, const double A[], const double P[],
 					double *Bx, double *By, double *Bz);

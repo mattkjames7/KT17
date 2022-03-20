@@ -52,13 +52,13 @@ void KT14Params(	double Rsun, double DistIndex,
  *
  * 
  * ********************************************************************/
-void KT17Params(	double Rsm, double t1, double t2
+void KT17Params(	double Rsm, double t1, double t2,
 					double *Rsun, double *DistIndex) {
 	
 	/* calculate the parameters for the KT17 model */
 	double f;
 	DistIndex[0] = (t1 - 6.495)/0.0229;
-	f = 2.06873 - 0.00279*DistIndex;
+	f = 2.06873 - 0.00279*DistIndex[0];
 	Rsun[0] = pow(Rsm/f,3.0);
 
 }
@@ -89,7 +89,7 @@ void KT17(	double x, double y, double z,
 			
 	/* calculate the parameters for the KT14 model */
 	double Rsm, t1, t2;
-	KT17Params(Rsun,DistIndex,&Rsm,&t1,&t2);
+	KT14Params(Rsun,DistIndex,&Rsm,&t1,&t2);
 	
 	/* call the KT14 model */
 	KT14(x,y,z,Rsm,t1,t2,Bx,By,Bz);	

@@ -2,7 +2,7 @@
 #define __DISK_H__
 #include <stdio.h>
 #include <stdlib.h>
-#include <math>
+#include <math.h>
 #include "shield.h"
 #endif
 
@@ -83,5 +83,5 @@ void DiskShield(	double x, double y, double z,
  *
  * 
  * ********************************************************************/
-void Disk(	double x, double y, double z, 
+void Disk(	double x, double y, double z, double t1,
 			double *Bx, double *By, double *Bz);

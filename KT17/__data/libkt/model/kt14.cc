@@ -1,5 +1,6 @@
 #include "kt14.h"
 
+const double R0 = 1.42;	//distance to fitted subsolar magnetopause
 
 /***********************************************************************
  * NAME : 		void KT14(x,y,z,Rsm,t1,t2,Bx,By,Bz)

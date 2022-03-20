@@ -51,7 +51,7 @@ void KT14Params(	double Rsun, double DistIndex,
  *
  * 
  * ********************************************************************/
-void KT17Params(	double Rsm, double t1, double t2
+void KT17Params(	double Rsm, double t1, double t2,
 					double *Rsun, double *DistIndex);					
 					
 /***********************************************************************

@@ -2,7 +2,7 @@
 #define __DIPOLE_H__
 #include <stdio.h>
 #include <stdlib.h>
-#include <math>
+#include <math.h>
 #include "shield.h"
 #endif
 

@@ -22,7 +22,7 @@
  * 
  * ********************************************************************/
 void ShieldField(	double x, double y, double z,
-					int n, double A[][n], double P[],
+					int n, const double A[], const double P[],
 					double *Bx, double *By, double *Bz) {
 	
 	/* set the outputs equal to zero */
@@ -31,15 +31,16 @@ void ShieldField(	double x, double y, double z,
 	Bz[0] = 0.0;
 
 	/* some temporaray variables */
-	int i, k;
+	int i, k, iA;
 	double pik, Aexpx, cosPy, sinPz, cosPz, sinPy, Pi2;
 	
 	/* loop through sum (equation 12 of Korth et al 2015) */
 	for (i=0;i<n;i++) {
 		Pi2 = P[i]*P[i];
 		for (k=0;k<n;k++) {
+			iA = i*n + k;
 			pik = sqrt(Pi2 + P[k]*P[k]);
-			Aexpx = A[i][k]*exp(pik*x);
+			Aexpx = A[iA]*exp(pik*x);
 			cosPy = cos(P[i]*y);
 			cosPz = cos(P[k]*z);
 			sinPy = sin(P[i]*y);
