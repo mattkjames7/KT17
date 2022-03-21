@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "kt14.h"
 #include "kt17.h"
-#endif
+
 
 
 class KTModel {
@@ -27,3 +27,4 @@ class KTModel {
 		double Rsm_, t1_, t2_, Rsun_, DistIndex_;
 		
 };
+#endif

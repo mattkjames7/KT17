@@ -759,6 +759,7 @@ Trace Trace::TracePosition(int i, double x, double y, double z) {
 	T.InputPos(1,&x,&y,&z);
 	
 	/* set the model up */
+	T.SetTraceBounds(BoundMP_,BoundTail_,BoundSurface_);
 	T.SetModelParams(&Rsm_[i],&t1_[i],&t2_[i]);
 	T.SetTraceCFG(MaxLen_,MaxStep_,InitStep_,MinStep_,ErrMax_,Delta_,false,0);
 	
@@ -1121,7 +1122,7 @@ void Trace::_AllocZmso() {
  * 
  * DESCRIPTION : Trace the field lines.
  *	
- * OUPUTS :
+ * OUTPUTS :
  * 		int *nstep		Number of trace steps
  * 		double **x		Trace positions
  * 		double **y		Trace positions
@@ -1628,7 +1629,7 @@ void Trace::_InterpPos(	double *xi, double *yi, double *zi,
  * INPUTS : 
  * 		int I		Trace index.
  *		  
- * ********************************************************************/
+ * ******************************************!**************************/
 void Trace::_SingleTraceFP(	int I) {
 
 	int i;

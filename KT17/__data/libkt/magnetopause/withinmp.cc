@@ -14,7 +14,7 @@
  *		bool wmp		true if within magnetopause.
  * 
  * ********************************************************************/
-bool WithinMP(double r, double theta, double Rsm) {
+bool WithinMPRT(double r, double theta, double Rsm) {
 	
 	double rmp;
 	
@@ -48,6 +48,6 @@ bool WithinMP(double x, double y, double z, double Rsm) {
 	r = sqrt(r);
 	theta = atan2(rho,x);
 	
-	return WithinMP(r,theta,Rsm);
+	return WithinMPRT(r,theta,Rsm);
 
 }
