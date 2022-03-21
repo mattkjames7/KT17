@@ -22,8 +22,7 @@ class KTModel {
 		/* this function will call the model and provide a field vector*/
 		void Field(	double x, double y, double z, 
 					double *Bx, double *By, double *Bz);
-	private:
-	
+
 		/* some local model parameters */
 		double Rsm_, t1_, t2_, Rsun_, DistIndex_;
 		
