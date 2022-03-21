@@ -1,148 +1,74 @@
 import numpy as np
-import ctypes as ct
-import os
-import platform
+from .ct import c_char_p,c_bool,c_bool_ptr,c_int,c_int_ptr
+from .ct import c_float,c_float_ptr,c_double,c_double_ptr,c_double_ptr_ptr
+from ._CppLib import _GetLib
 
-Arch = platform.architecture()[0]
-if Arch == '64bit':
-	libkt17 = ct.CDLL(os.path.dirname(__file__)+"/__data/libkt17/libkt17_64.so")
-elif Arch == '32bit':
-	libkt17 = ct.CDLL(os.path.dirname(__file__)+"/__data/libkt17/libkt17_32.so")
-else:
-	print('Architecture ({:s}) not found'.format(Arch))
-
+#try loading the C++ library
+libkt17 = _GetLib()
 
 
 _CWithinMP = libkt17.WithinMP
-_CWithinMP.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double]
-_CWithinMP.restype = ct.c_bool
-
-_Ckt17DipoleField = libkt17.kt17DipoleField
-_Ckt17DipoleField.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17DipoleField.restype = None
-
-_Ckt17DipoleShield = libkt17.kt17DipoleShield
-_Ckt17DipoleShield.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17DipoleShield.restype = None
-
-_Ckt17DipoleB = libkt17.kt17DipoleB
-_Ckt17DipoleB.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17DipoleB.restype = None
-
-_Ckt17DiskThickness = libkt17.kt17DiskThickness
-_Ckt17DiskThickness.argtypes = [ct.c_double, ct.c_double]
-_Ckt17DiskThickness.restype = ct.c_double
-
-_Ckt17DiskField = libkt17.kt17DiskField
-_Ckt17DiskField.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17DiskField.restype = None
-
-_Ckt17DiskShield = libkt17.kt17DiskShield
-_Ckt17DiskShield.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17DiskShield.restype = None
-
-_Ckt17DiskB = libkt17.kt17DiskB
-_Ckt17DiskB.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_double]
-_Ckt17DiskB.restype = None
-
-_Ckt17QuasiHarrisThickness = libkt17.kt17QuasiHarrisThickness
-_Ckt17QuasiHarrisThickness.argtypes = [ct.c_double, ct.c_double]
-_Ckt17QuasiHarrisThickness.restype = ct.c_double
-
-_Ckt17QuasiHarrisField = libkt17.kt17QuasiHarrisField
-_Ckt17QuasiHarrisField.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17QuasiHarrisField.restype = None
-
-_Ckt17QuasiHarrisShield = libkt17.kt17QuasiHarrisShield
-_Ckt17QuasiHarrisShield.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17QuasiHarrisShield.restype = None
-
-_Ckt17QuasiHarrisB = libkt17.kt17QuasiHarrisB
-_Ckt17QuasiHarrisB.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_double]
-_Ckt17QuasiHarrisB.restype = None
-
-_Ckt17B = libkt17.kt17B
-_Ckt17B.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_double, ct.c_double, ct.c_double]
-_Ckt17B.restype = None
-
-_Ckt17Barray = libkt17.kt17Barray
-_Ckt17Barray.argtypes = [ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17Barray.restype = None
-
-_Ckt17 = libkt17.kt17
-_Ckt17.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_double, ct.c_double]
-_Ckt17.restype = None
-
-# _Ckt17array = libkt17.kt17array
-# _Ckt17array.argtypes = [ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-# _Ckt17array.restype = None
-
-_CUnitVector = libkt17.UnitVector
-_CUnitVector.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_CUnitVector.restype = None
-
-_CReverseElements = libkt17.ReverseElements
-_CReverseElements.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int]
-_CReverseElements.restype = None
-
-_CInsideTraceLims = libkt17.InsideTraceLims
-_CInsideTraceLims.argtypes = [ct.c_double, ct.c_double, ct.c_double,np.ctypeslib.ndpointer(ct.c_bool,flags="C_CONTIGUOUS"), ct.c_int, ct.c_double]
-_CInsideTraceLims.restype = ct.c_bool
-
-_CNorthSouthFLs = libkt17.NorthSouthFLs
-_CNorthSouthFLs.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS")]
-_CNorthSouthFLs.restype = None
-
-_Clinterp = libkt17.linterp
-_Clinterp.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double]
-_Clinterp.restype = ct.c_double
-
-_CEqFootprint = libkt17.EqFootprint
-_CEqFootprint.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_CEqFootprint.restype = None
-
-_Cmin = libkt17.min
-_Cmin.argtypes = [ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int]
-_Cmin.restype = ct.c_double
-
-_CPlanetFootprints = libkt17.PlanetFootprints
-_CPlanetFootprints.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_CPlanetFootprints.restype = None
-
-_CFieldLineLength = libkt17.FieldLineLength
-_CFieldLineLength.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_CFieldLineLength.restype = None
-
-_CRvecs = libkt17.Rvecs
-_CRvecs.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_double, ct.c_double, ct.c_double, ct.c_double]
-_CRvecs.restype = None
-
-_Ckt17StepRKM = libkt17.kt17StepRKM
-_Ckt17StepRKM.argtypes = [ct.c_double, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_double, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_double, ct.c_double, ct.c_double]
-_Ckt17StepRKM.restype = None
-
-_Ckt17Trace = libkt17.kt17Trace
-_Ckt17Trace.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_int, ct.c_double, ct.c_double, ct.c_int, ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17Trace.restype = None
-
-_Ckt17MultiTrace = libkt17.kt17MultiTrace
-_Ckt17MultiTrace.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"),np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"),np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, ct.c_int, ct.c_double, ct.c_double, ct.c_int, ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-_Ckt17MultiTrace.restype = None
+_CWithinMP.argtypes = [	c_double,	#x MSM
+						c_double,	#y MSM
+						c_double,	#z MSM
+						c_double]	#Rsm
+_CWithinMP.restype = c_bool
 
 
-# _Ckt17Trace = libkt17.kt17Trace
-# _Ckt17Trace.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_int, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, ct.c_double, ct.c_double, ct.c_double]
-# _Ckt17Trace.restype = None
+_CWithinMPRT = libkt17.WithinMPRT
+_CWithinMPRT.argtypes = [	c_double,	#r MSM
+							c_double,	#theta MSM
+							c_double]	#Rsm
+_CWithinMPRT.restype = c_bool
 
-# _Ckt17TraceScaled = libkt17.kt17TraceScaled
-# _Ckt17TraceScaled.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_int, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, ct.c_double, ct.c_double]
-# _Ckt17TraceScaled.restype = None
 
-# _Ckt17MultiTrace = libkt17.kt17MultiTrace
-# _Ckt17MultiTrace.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, ct.c_int, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-# _Ckt17MultiTrace.restype = None
+_CModelField = libkt17.ModelField
+_CModelField.argtypes = [	c_int,				#n
+							c_double_ptr,		#x MSM
+							c_double_ptr,		#y MSM
+							c_double_ptr,		#z MSM
+							c_int,				#lP
+							c_int,				#nP
+							c_double_ptr_ptr,	#Params	
+							c_double_ptr,		#Bx
+							c_double_ptr,		#By
+							c_double_ptr]		#Bz
+_CModelField.restype = None
 
-# _Ckt17MultiTraceScaled = libkt17.kt17MultiTraceScaled
-# _Ckt17MultiTraceScaled.argtypes = [np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, ct.c_int, ct.c_double, ct.c_double, np.ctypeslib.ndpointer(ct.c_int,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), ct.c_int, np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS"), np.ctypeslib.ndpointer(ct.c_double,flags="C_CONTIGUOUS")]
-# _Ckt17MultiTraceScaled.restype = None
+_CTraceField = libkt17.TraceField
+_CTraceField.argtypes = [	c_int,				#n
+							c_double_ptr,		#x0
+							c_double_ptr,		#y0
+							c_double_ptr,		#z0
+							c_int,				#nP	
+							c_double_ptr,		#P0
+							c_double_ptr,		#P1
+							c_double_ptr,		#P2
+							c_bool,				#BoundMP
+							c_double,			#BoundTail
+							c_int,				#BoundSurface
+							c_int,				#MaxLen
+							c_double,			#MaxStep
+							c_double,			#InitStep
+							c_double,			#MinStep
+							c_double,			#ErrMax
+							c_double,			#Delta
+							c_bool,				#Verbose
+							c_int,				#TraceDir
+							c_int_ptr,			#nstep
+							c_double_ptr_ptr,	#x
+							c_double_ptr_ptr,	#y
+							c_double_ptr_ptr,	#z
+							c_double_ptr_ptr,	#Bx
+							c_double_ptr_ptr,	#By
+							c_double_ptr_ptr,	#Bz
+							c_double_ptr_ptr,	#Rmsm
+							c_double_ptr_ptr,	#Rmso
+							c_double_ptr_ptr,	#S
+							c_double_ptr_ptr,	#Rnorm
+							c_double_ptr_ptr,	#FP
+							c_int,				#nalpha
+							c_double_ptr,		#alpha
+							c_double_ptr]		#halpha
+_CTraceField.restype = None
 
