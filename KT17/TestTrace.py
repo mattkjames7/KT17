@@ -34,7 +34,16 @@ def TestTrace(degstep=5.0,Params=(0.39,50.0)):
 	y = np.zeros(n)
 	z = 1.01*np.sin(a)
 	
-	T = TraceField(x,y,z,Params=Params)
+	kwargs = {}
+	if len(Params) == 2:
+		kwargs['Rsun'] = Params[0]
+		kwargs['DistIndex'] = Params[1]
+	else:
+		kwargs['Rsm'] = Params[0]
+		kwargs['t1'] = Params[1]
+		kwargs['t2'] = Params[2]
+	
+	T = TraceField(x,y,z,**kwargs)
 	
 	fig = plt
 	fig.figure()
