@@ -1,5 +1,6 @@
 #ifndef __LATLT_H__
 #define __LATLT_H__
+#define _USE_MATH_DEFINES
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
