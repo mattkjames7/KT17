@@ -10,8 +10,10 @@ def TestTrace(degstep=5.0,Params=(0.39,50.0)):
 	
 	Inputs
 	======
-	degstep:	Latitudinal separaation between field traces in degrees.
-	Params:	Either 2 or 3 element array containing the parameters which 
+	degstep : float
+		Latitudinal separaation between field traces in degrees.
+	Params : list|tuple
+		Either 2 or 3 element array containing the parameters which 
 		control the model field:
 			KT14: Three parameters [Rsm,t1,t2], where
 				Rsm = subsolar distance of the MP in R_m

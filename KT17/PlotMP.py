@@ -6,16 +6,21 @@ def PlotShueMP(fig,Rsm,Alpha,color=[0.0,0.0,1.0],lw=2,zorder=10,NoonTop=True):
 	
 	Inputs
 	======
-	Inputs
-	======
-	fig:	Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
-	Rsm:	Subsolar distance of the magnetopause.
-	Alpha:	Flaring parameter of the magnetopause.
-	color: 	RGB color to plot the magnetopause in.
-	lw:		Width of the magnetopause line.
-	zorder:	Height order of this plot object.
-	NoonTop:When True, the plot is oriented such that noon is at the top
-			otherwise, noon is to the left of the plot.	
+	fig : obj
+		Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
+	Rsm : float
+		Subsolar distance of the magnetopause.
+	Alpha : float
+	 	Flaring parameter of the magnetopause.
+	color : list
+	 	RGB color to plot the magnetopause in.
+	lw : float
+		Width of the magnetopause line.
+	zorder : float
+		Height order of this plot object.
+	NoonTop : bool
+		When True, the plot is oriented such that noon is at the top
+		otherwise, noon is to the left of the plot.	
 	
 	'''
 
@@ -37,12 +42,21 @@ def PlotShueMPYZ(fig,Rsm,Alpha,color=[0.0,0.0,1.0],lw=2,zorder=10):
 	
 	Inputs
 	======
-	fig:	Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
-	Rsm:	Subsolar distance of the magnetopause.
-	Alpha:	Flaring parameter of the magnetopause.
-	color: 	RGB color to plot the magnetopause in.
-	lw:		Width of the magnetopause line.
-	zorder:	Height order of this plot object.
+	fig : obj
+		Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
+	Rsm : float
+		Subsolar distance of the magnetopause.
+	Alpha : float
+	 	Flaring parameter of the magnetopause.
+	color : list
+	 	RGB color to plot the magnetopause in.
+	lw : float
+		Width of the magnetopause line.
+	zorder : float
+		Height order of this plot object.
+	NoonTop : bool
+		When True, the plot is oriented such that noon is at the top
+		otherwise, noon is to the left of the plot.	
 
 	
 	'''
@@ -60,14 +74,21 @@ def PlotMercuryMP(fig,Rsm=1.42,Alpha=0.5,color=[0.0,0.0,1.0],lw=2,zorder=10,Noon
 	
 	Inputs
 	======
-	fig:	Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
-	Rsm:	Subsolar distance of the magnetopause.
-	Alpha:	Flaring parameter of the magnetopause.
-	color: 	RGB color to plot the magnetopause in.
-	lw:		Width of the magnetopause line.
-	zorder:	Height order of this plot object.
-	NoonTop:When True, the plot is oriented such that noon is at the top
-			otherwise, noon is to the left of the plot.	
+	fig : obj
+		Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
+	Rsm : float
+		Subsolar distance of the magnetopause.
+	Alpha : float
+	 	Flaring parameter of the magnetopause.
+	color : list
+	 	RGB color to plot the magnetopause in.
+	lw : float
+		Width of the magnetopause line.
+	zorder : float
+		Height order of this plot object.
+	NoonTop : bool
+		When True, the plot is oriented such that noon is at the top
+		otherwise, noon is to the left of the plot.		
 	
 	'''
 	PlotShueMP(fig,Rsm,Alpha,color,lw,zorder,NoonTop)
@@ -78,15 +99,21 @@ def PlotMercuryMPYZ(fig,Rsm=1.42,Alpha=0.5,color=[0.0,0.0,1.0],lw=2,zorder=10):
 	
 	Inputs
 	======
-	fig:	Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
-	Rsm:	Subsolar distance of the magnetopause.
-	Alpha:	Flaring parameter of the magnetopause.
-	color: 	RGB color to plot the magnetopause in.
-	lw:		Width of the magnetopause line.
-	zorder:	Height order of this plot object.
-	NoonTop:When True, the plot is oriented such that noon is at the top
-			otherwise, noon is to the left of the plot.	
-	
+	fig : obj
+		Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
+	Rsm : float
+		Subsolar distance of the magnetopause.
+	Alpha : float
+	 	Flaring parameter of the magnetopause.
+	color : list
+	 	RGB color to plot the magnetopause in.
+	lw : float
+		Width of the magnetopause line.
+	zorder : float
+		Height order of this plot object.
+	NoonTop : bool
+		When True, the plot is oriented such that noon is at the top
+		otherwise, noon is to the left of the plot.	
 	'''
 	PlotShueMPYZ(fig,Rsm,Alpha,color,lw,zorder)
 
@@ -96,14 +123,21 @@ def PlotKT17MercuryMP(fig,Rsun=0.39,DistInd=50.0,color=[0.0,0.0,1.0],lw=2,zorder
 	
 	Inputs
 	======
-	fig:	Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
-	Rsun: 	radial distance of mercury from the Sun in AU
-	DistIndex: Anderson et al 2013 disturbance index.
-	color: 	RGB color to plot the magnetopause in.
-	lw:		Width of the magnetopause line.
-	zorder:	Height order of this plot object.
-	NoonTop:When True, the plot is oriented such that noon is at the top
-			otherwise, noon is to the left of the plot.	
+	fig : obj
+		Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
+	Rsun : float
+		radial distance of mercury from the Sun in AU
+	DistIndex : float
+		Anderson et al 2013 disturbance index.
+	color : list
+	 	RGB color to plot the magnetopause in.
+	lw : float
+		Width of the magnetopause line.
+	zorder : float
+		Height order of this plot object.
+	NoonTop : bool
+		When True, the plot is oriented such that noon is at the top
+		otherwise, noon is to the left of the plot.	
 	
 	'''
 
@@ -119,12 +153,21 @@ def PlotKT17MercuryMPYZ(fig,Rsun=0.39,DistInd=50.0,color=[0.0,0.0,1.0],lw=2,zord
 	
 	Inputs
 	======
-	fig:	Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
-	Rsun: 	radial distance of mercury from the Sun in AU
-	DistIndex: Anderson et al 2013 disturbance index.
-	color: 	RGB color to plot the magnetopause in.
-	lw:		Width of the magnetopause line.
-	zorder:	Height order of this plot object.
+	fig : obj
+		Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
+	Rsun : float
+		radial distance of mercury from the Sun in AU
+	DistIndex : float
+		Anderson et al 2013 disturbance index.
+	color : list
+	 	RGB color to plot the magnetopause in.
+	lw : float
+		Width of the magnetopause line.
+	zorder : float
+		Height order of this plot object.
+	NoonTop : bool
+		When True, the plot is oriented such that noon is at the top
+		otherwise, noon is to the left of the plot.	
 
 	'''
 

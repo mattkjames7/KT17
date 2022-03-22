@@ -1,333 +1,689 @@
 import numpy as np
-from ._CFunctions import _Ckt17MultiTrace
-from scipy.interpolate import InterpolatedUnivariateSpline
-
-###### File created automatically using PopulateCtypes ######
-'''
-LimTypes include:
-	Confining to a box: -6 < x < 2, -4 < y < 4, -4 < z < 4
-	Confine to box and planet's surface
-	Confine to just outside the planet
-	Confine to within MP, outside planet and within 10Rm
-	Default is trace to surface and to MP
-
-New LimType options
-	Each = 1 bit
-	Default: 1111000 (Big Endian[I think]) = 15
-	MP						+1
-	Planet					+2
-	Dipole of Planet		+4
-	Tail Limit at 10Rm		+8
-	Core					+16
-	Core Dipole				+32
-	Box						+64
-	
-
-
-'''
+from ._CFunctions import _CTraceField
+import PyFileIO as pf
+from .ct import ctBool,ctInt,ctIntPtr,ctDouble,ctDoublePtr,ctDoublePtrPtr
+import matplotlib.pyplot as plt
 
 
 class TraceField(object):
-	def __init__(self,x0,y0,z0,Params=[1.42,7.37,2.16],maxlen=1000,
-				initstep=0.01,maxstep=0.05,LimType=15,
-				FlattenSingleTraces=True,SmoothSurfaceTransition=False,
-				AssumeOutsidePlanet=True,**kwargs):
+	'''
+	Member Functions
+	================
+	TraceDict()
+		Return a dictionary containing all of the traces.
+	Save()
+		Save the trace object contents to a file.
+	GetTrace()
+		Return a dictionary for a single trace.
+	PlotXY()
+		Plot Field line(s) in X-Y plane.
+	PlotXZ()
+		Plot Field line(s) in X-Z plane.
+	PlotRhoZ()
+		Plot Field line(s) in Rho-Z plane.
+	PlotHalpha()
+		Plot H_alpha along a field line.
+	
+	Attributes
+	==========
+	x : float
+		Position along traces (Rm).
+	y : float
+		Position along traces (Rm).
+	z : float
+		Position along traces (Rm).
+	Bx : float
+		Field along traces (nT).
+	By : float
+		Field along traces (nT).
+	Bz : float
+		Field along traces (nT).
+	nstep : int
+		Number of elements in each trace.
+	s : float
+		Distance along each trace (Rm).
+	Rmsm : float
+		Radial coordinate MSM (Rm).
+	Rmso : float
+		Radial coordinate MSO (Rm).
+	Rnorm : float
+		Normalized radius.
+	halpha : float
+		Arrays of halphas for each trace and polarization.
+	Lshell : float
+		L-shell of each field line if it crosses the equator.,
+	MLTe : float
+		Local time at which each field line crosses the magnetic equator.
+	
+	Footprints:
+		Each footprint has a latitude (Lat) and local time (LT), where
+		Lat and LT are followed by N or S (for North or South). 
+		Footprints preceded by "M" are those which sit on a dipole-
+		centered surface, rather than the planet itself. Ones which end 
+		with a "c" are ones which map to the core, or a surface the same
+		size as the core.
+		The list of footprint attributes:
+		'LatN','LTN','LatS','LTS','LatNc','LTNc','LatSc','LTSc',
+		'MLatN','MLTN','MLatS','MLTS','MLatNc','MLTNc','MLatSc','MLTSc'
+		
+	
+		
+	
+	'''
+	
+	def __init__(self,*args,**kwargs):
+		'''
+		Either create a new set of KT14/17 traces, or load from file.
+		
+		Inputs: *args
+		===========
+		Either a single argument:
+			TraceField(fname)
+		Or three:
+			TraceField(x0,y0,z0)
+		
+		fname : str
+			Name of a file which contains the contents of a TraceField
+			object.
+		x0 : float
+			Trace starting position(s) in MSM (Rm)
+		y0 : float
+			Trace starting position(s) in MSM (Rm)
+		z0 : float
+			Trace starting position(s) in MSM (Rm)
+		
+		Keywords: **kwargs
+		==================
+		Rsm : float
+			Subsolar magnetopause standoff distance (Rm).
+		t1 : float
+			Disk current magntitude
+		t2 : float
+			Quasi-harris sheet magnitude
+		Rsun : float
+			Distance of Mercury from the Sun (AU).
+		DistIndex : float
+			Anderson et al 2013 disturbance index (0.0-97.0).	
+		MPStop : bool
+			If True, tracing will stop at the magnetopause
+		TailX : float
+			Limit at which tracing will stop in the magnetotail (Rm).
+		EndSurface : int
+			1 - Stop at the planetary surface
+			2 - Stop at the planetary core (0.832 Rm).
+			3 - Stop at dipole at 1 Rm
+			4 - Stop at dipole at 0.832 Rm (core radius)
+			5 - Stop at northern surface, southern dipole at 
+				1 Rm (virtual surface).
+			6 - Stop at northern core and southern dipole at
+				0.832 Rm.			
+		MaxLen : int
+			Maximum number of trace steps
+		MaxStep : float
+			Maximum step size (Rm).
+		InitStep :  float
+			Initial step size (Rm).
+		MinStep : float
+			Minimum step size (Rm).
+		ErrMax : float
+			Maximum trace error.
+		Delta : float
+			Distance between adjacent traces (Rm) used for calculating
+			h_alpha
+		Verbose : bool
+			If True then tracing progress will be displayed
+		TraceDir : int
+			0 - Trace in both directions
+			1 - Only trace in the direction of the field (towards north)
+			-1 - Only trace in the opposite direction to the field
+				(towards south)
+		alpha : float
+			Polarization angles to calculate h_alpha for (degrees), 
+			0 degrees is toroidal, 90 is poloidal.
+		'''
+		
+		#check if we are loading from file, or creating new traces
+		if len(args) == 1:
+			#read from file or dict
+			if isinstance(args[0],dict):
+				#assume that the dictionary provided is a TraceField dict
+				self.__dict__ = args[0]
+			else:
+				#load from file
+				self._Load(*args)
+		elif len(args) == 3:
+			#new traces
+			self._Trace(*args,**kwargs)
+		else:
+			#something's wrong
+			print('TraceField was supplied with {:d} arguments...'.format(len(args)))
+			print('Either use 1 string (file name), or')
+			print('use 3 inputs (x,y,z)')
+			return None
+		
+	def _Load(self,fname):
+		'''
+		Load the object data from a file containing the object __dict__
+		'''
+		self.__dict__ = pf.LoadObject(fname)
+	
+
+	def _Trace(self,*args,**kwargs):
 
 		'''
-		The TraceField object performs field line traces from initial
-		positions provided using the KT17/KT14 model.
-		
-		Inputs:
-			x0,y0,z0: Scalars or arrays containing the x-MSM (Mercury Solar
-					Magnetic) coordinate of the	starting point for the trace.
-			Params: 2 or 3 element array, list or tuple of model parameters.
-					For the KT14 model - Params=[Rss,T1,T2] where Rss is 
-					the	subsolar magnetopause distance in Rm, T1 is the 
-					magnitude of the tail disk current and T2 is the 
-					magnitude of the quasi-harris sheet. By default,
-					Params = [1.42,7.37,2.16].
-					For the KT17 model - Params=[Rsun,DistIndex], where
-					Rsun is the distance of Mercury from the Sun in AU,
-					DistIndex is the disturbance index (0-100) as calculated
-					in Anderson et al., 2013.
-			maxlen: Maximum number of steps used to trace the field.
-			initstep: Initial step size for trace in Rm.
-			maxstep: Maximum length of a trace step in Rm.
-			LimType: This tells the C++ code where to terminate the trace.
-					The different options can be enabled by setting the 
-					appropriate bit of and 8-bit integer to 1, where the
-					options are:
-						MP						+1 	(Stop if magnetopause is reached)
-						Planet					+2	(Stop at planetary surface)
-						Dipole of Planet		+4	(Stop 1 Rm from centre of planetary dipole)
-						Tail Limit at 10Rm		+8	(Stop if trace reaches x MSM < -10 (in the magnetotail))
-						Core					+16	(Stop at the iron core of Mercury (R~2030km))
-						Core Dipole				+32 (Stop at a distance from the centre of the dipole equivalent to the size of Mercury's core)
-						Box						+64 (Stop within a box where -6 < x < 2, -4 < y < 4, -4 < z < 4)
-					Default: 1111000 (Big Endian) = 15 (stop at MP, Planetary surface in the south, 1Rm from the dipole in the north and 10Rm down-tail)
-			FlattenSingleTraces: Flattens the position and field magnitude 
-					arrays created if only a single trace is performed.
-			SmoothSurfaceTransition: Smooths the transition from within
-					the planets mantle/crust to outside of the planet
-					by inserting extra points along the trace within a small
-					distance of the surface. The InPlanet attribute will 
-					vary smoothly from 1.0 to 0.0 where the field trace 
-					is near to the crust. Requires AssumeOutsidePlanet=False
-					and traces to terminate at the planets core.
-			AssumeOutsidePlanet: Assumes the the magnetosphere extends 
-					all the way to the surface of the core - sets 
-					InPlanet[:] = 0.0.
-					
-			
-		Attributes:
-			nstep: (n,) array with number of steps taken in each trace.
-			x,y,z:	(n,maxlen) arrays containing positions in MSM of the
-				field line along the trace, where n is the number of traces.
-				For trace i, x[i,0:nstep[i]],y[i,0:nstep[i]],z[i,0:nstep[i]] 
-				contain real values positions and x[i,nstep[i]:],
-				y[i,nstep[i]:],z[i,nstep[i]:] = NAN. If n==1 and 
-				FlattenSingleTraces=True, then the dimensions are reduced 
-				to (maxlen,).
-			Bx,By,Bz: Magnetic field along the trace in nT.
-			Rmsm: Radial distance of trace points in Rm in the MSM
-				coordinate system (centred upon the magnetic dipole).
-			Rmso: Radial distance of each trace point in Rm in the MSO
-				(Mercury Solar Orbital) coordinate system, where
-				xMSO,yMSO = xMSM,yMSM and zMSO (centered on planet) = 
-				zMSM+0.19.
-			InPlanet: Floating point array for each trace, where InPlanet
-				= 1.0 inside the planet and InPlanet = 0.0 outside. This
-				is useful when modeling MHD waves at Mercury.
-				
-			MlatN,MlatS: Magnetic latitudes of the northern and southern fieldline footprints.
-			MltN,MltS: Magnetic local times of the northern and southern fieldline footprints.
-			GlatN,GlatS: Hermeographic (is that a word?) latitudes of the northern and southern fieldline footprints.
-			GltN,GltS: Hermeographic local times of the northern and southern fieldline footprints.
-			
-			MlatNcore,MlatScore: Magnetic latitudes of the northern and southern core fieldline footprints.
-			MltNcore,MltScore: Magnetic local times of the northern and southern core fieldline footprints.
-			GlatNcore,GlatScore: Hermeographic (is that a word?) latitudes of the northern and southern core fieldline footprints.
-			GltNcore,GltScore: Hermeographic local times of the northern and southern core fieldline footprints.
-			
-			MltE: Magnetic local time at the magnetic equatorial (zMSM=0) footprint.
-			Lshell: Radial distance of magnetic equatorial footprint.
-			FlLen: Total length of field line (NAN if not closed)
-			FlLencore: Total length of field line traced to the core.
+		Run the tracing code, see __init__ docstring.
 					
 		'''
 		
 
 		#Convert input variables to appropriate numpy dtype:
-		_x0 = np.array([x0]).astype("float64").flatten()
-		_y0 = np.array([y0]).astype("float64").flatten()
-		_z0 = np.array([z0]).astype("float64").flatten()
-		_n = np.int32(np.size(x0))
-		_maxlen = np.int32(maxlen)
-		_initstep = np.float64(initstep)
-		_maxstep = np.float64(maxstep)
-		_nstep = np.zeros(_n,dtype='int32')
-		_x = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_y = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_z = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_bx = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_by = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_bz = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_Rmsm = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_Rmso = np.zeros(_n*_maxlen,dtype='float64')+np.nan
-		_FP = np.zeros(_n*20,dtype='float64')+np.nan
-		_LimType = np.int32(LimType)
-		Params = np.array(Params)
-		if len(Params.shape) == 1:
-			_Params = np.float64(Params)
-			_nParams = np.int32(_Params.size)
+		self.x0 = ctDoublePtr(args[0])
+		self.y0 = ctDoublePtr(args[1])
+		self.z0 = ctDoublePtr(args[2])
+		self.n = ctInt(np.size(x0))
+
+		#figure out what parameters we have and which to pass to the C code
+		kt14 = np.array(['Rsm' in kwargs,'t1' in kwargs,'t2' in kwargs])
+		kt17 = np.array(['Rsun' in kwargs,'DistIndex' in kwargs])
+		
+		if kt14.all():
+			#use just kt14 parameters
+			self.Params = np.zeros((self.n,3),dtype='float64')
+			self.Params[:,0] = kwargs['Rsm']
+			self.Params[:,1] = kwargs['t1']
+			self.Params[:,2] = kwargs['t2']
+		elif kt17.all():
+			#use only kt17 parameters
+			self.Params = np.zeros((self.n,2),dtype='float64')
+			self.Params[:,0] = kwargs['Rsun']
+			self.Params[:,1] = kwargs['DistIndex']
+		elif kt14.any():
+			#use some kt14 parameters + defaults
+			self.Params = np.zeros((self.n,3),dtype='float64')
+			self.Params[:,0] = kwargs.get('Rsm',1.42)
+			self.Params[:,1] = kwargs.get('t1',7.37)
+			self.Params[:,2] = kwargs.get('t2',2.16)		
+		elif kt17.any():
+			#use some kt17 parameters + defaults
+			self.Params = np.zeros((self.n,2),dtype='float64')
+			self.Params[:,0] = kwargs.get('Rsun',0.427)
+			self.Params[:,1] = kwargs.get('DistIndex',50.0)		
 		else:
-			_Params = np.float64(Params).flatten()
-			_nParams = np.int32(Params.shape[1])
+			#use defaults
+			self.Params = np.zeros((self.n,3),dtype='float64')
+			self.Params[:,0] = 1.42
+			self.Params[:,1] = 7.37
+			self.Params[:,2] = 2.16		
+
+		_,_nP = self.Params.shape
+		
+		#switch to three arrays
+		_P0 = Params[:,0]
+		_P1 = Params[:,1]
+		if nP == 2:
+			_P2 = np.zeros(self.n,dtype='float64')
+		else:
+			_P2 = Params[:,2]
+
+		#some config options
+		self.BoundMP = ctBool(kwargs.get('MPStop',True))
+		self.BoundTail = ctDouble(kwargs.get('TailX',-10.0))
+		self.BoundSurface = ctInt(kwargs.get('EndSurface',6))
+		
+		self.MaxLen = ctInt(kwargs.get('MaxLen',1000))
+		self.MaxStep = ctDouble(kwargs.get('MaxStep',0.05)
+		self.InitStep = ctDouble(kwargs.get('InitStep',0.01))
+		self.MinStep = ctDouble(kwargs.get('MinStep',0.001))
+		self.ErrMax = ctDouble(kwargs.get('ErrMax',0.0001))
+		self.Delta = ctDouble(kwargs.get('Delta',0.05))
+		self.Verbose = ctBool(kwargs.get('Verbose',False))
+		self.TraceDir = ctInt(kwargs.get('TraceDir',0))
+		
+		#alpha
+		self.alpha = ctDoublePtr(kwargs.get('alpha',[]))
+		self.nalpha = np.int32(self.alpha.size)
+		
+		#some output arrays
+		self.x = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.y = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.z = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.Bx = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.By = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.Bz = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+
+		self.nstep = np.zeros(self.n,dtype="int32")
+
+		self.s = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.Rmsm = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.Rmso = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.Rnorm = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
+		self.halpha = np.zeros((self.n*self.MaxLen*self.nalpha,),dtype="float64") + np.nan #hopefully this will be reshaped to (n,nalpha,MaxLen)
+		self.FP = np.zeros((self.n,7),dtype="float64")
+
+		_x = _ptr2D(self.x)
+		_y = _ptr2D(self.y)
+		_z = _ptr2D(self.z)
+
+		_Bx = _ptr2D(self.Bx)
+		_By = _ptr2D(self.By)
+		_Bz = _ptr2D(self.Bz)
+	
+		
+		_s = _ptr2D(self.s)
+		_Rmsm = _ptr2D(self.Rmsm)
+		_Rmso = _ptr2D(self.Rmso)
+		_Rnorm = _ptr2D(self.Rnorm)		
+		_FP = _ptr2D(self.FP)
+	
 		#call the C++ function 
-		_Ckt17MultiTrace(_x0, _y0, _z0, _n, _maxlen, _initstep, _maxstep,
-						_LimType, _nParams, _Params, _nstep, _x, _y, _z,
-						_bx, _by, _bz, _Rmsm, _Rmso, _FP)
+		_CTraceField(	self.n,self.x0,self.y0,self.z0,
+						_nP,_P0,_P1,_P2,
+						self.BoundMP,self.BoundTail,self.BoundSurface,
+						self.MaxLen,self.MaxStep,self.InitStep,
+						self.MinStep,self.ErrMax,self.Delta,
+						self.Verbose,self.TraceDir,
+						self.nstep,
+						_x,_y,_z,
+						_Bx,_By,_Bz,
+						_Rmsm,_Rmso,_s,_Rnorm,_FP,
+						self.nalpha,self.alpha,self.halpha)
 
-		#reshape the footprints
-		_FP = _FP.reshape((_n,20))
-		
-		fpnames = ['MlatN','MlatS','GlatN','GlatS','MltN','MltS','GltN',
-					'GltS','MlatNcore','MlatScore','GlatNcore','GlatScore',
-					'MltNcore','MltScore','GltNcore','GltScore','Lshell',
-					'MltE','FlLen','FlLencore']
-
-		self.n = _n
-		if _n == 1 and FlattenSingleTraces:
-			self.nstep = _nstep[0]
-			self.x = _x
-			self.y = _y
-			self.z = _z
-			self.Bx = _bx
-			self.By = _by
-			self.Bz = _bz
-			self.Rmsm = _Rmsm
-			self.Rmso = _Rmso
-			for i in range(0,20):
-				setattr(self,fpnames[i],_FP[0,i])
-
-		else:		
-			self.nstep = _nstep
-			self.x = _x.reshape((_n,_maxlen))
-			self.y = _y.reshape((_n,_maxlen))
-			self.z = _z.reshape((_n,_maxlen))
-			self.Bx = _bx.reshape((_n,_maxlen))
-			self.By = _by.reshape((_n,_maxlen))
-			self.Bz = _bz.reshape((_n,_maxlen))
-			self.Rmsm = _Rmsm.reshape((_n,_maxlen))
-			self.Rmso = _Rmso.reshape((_n,_maxlen))
-			for i in range(0,20):
-				setattr(self,fpnames[i],_FP[:,i])
-
-
-		#make a copy of the original traces before tey are butchered by the options 
-		self.nstep_full = np.copy(self.nstep)
-		self.x_full = np.copy(self.x)
-		self.y_full = np.copy(self.y)
-		self.z_full = np.copy(self.z)
-		self.Bx_full = np.copy(self.Bx)
-		self.By_full = np.copy(self.By)
-		self.Bz_full = np.copy(self.Bz)	
-		self.Rmsm_full = np.copy(self.Rmsm)	
-		self.Rmso_full = np.copy(self.Rmso)	
 		
 		
-		bits = np.array(list('{:032b}'.format(LimType))[::-1]).astype('bool8')
-		if bits[4]:
-			Rcutoff = 0.832
-			Ruse = self.Rmso_full
-		elif bits[5] and not bits[4]:
-			Rcutoff = 0.832
-			Ruse = self.Rmsm_full
-		elif bits[2] and not bits[1]:
-			Rcutoff = 1.0
-			Ruse = self.Rmsm_full
+		
+		#add footprints as attributes to this object		
+		fpnames = [	'LatN','LTN','LatS','LTS',
+					'LatNc','LTNc','LatSc','LTSc',
+					'MLatN','MLTN','MLatS','MLTS',
+					'MLatNc','MLTNc','MLatSc','MLTSc',
+					'Lshell','MLTe']
+
+		for i in range(0,len(fpnames)):
+			setattr(self,fpnames[i],self.FP[:,i])
+
+		#reshape halpha
+		if self.nalpha > 0 :
+			self.halpha = self.halpha.reshape(self.n,self.nalpha,self.MaxLen)
+	
+	def TraceDict(self,RemoveNAN=True):
+		'''
+		Return a dictionary with all of the outputs of the field trace.
+		
+		Inputs
+		======
+		RemoveNAN : bool
+			If True then arrays will be shortened by removing nans.
+			
+		Returns
+		=======
+		out : dict
+			Contains the field traces coordinates, field components etc.
+		
+		'''
+		#we could save a fair bit of space by removing NANs - this will
+		#mean that simple 2D arrays will become arrays of objects
+		if RemoveNAN:
+			ptrs = ['x','y','z','Bx','By','Bz','s','Rmsm','Rmso','Rnorm']
+			out = {}
+			keys = list(self.__dict__.keys())
+			for k in keys:
+				if k in ptrs:
+					#fix these
+					tmp = np.zeros(self.n,dtype='object')
+					for i in range(0,self.n):
+						tmp[i] = self.__dict__[k][i,:self.nstep[i]]
+					out[k] = tmp
+				elif k == 'halpha':
+					#3D
+					tmp = np.zeros(self.halpha.shape[:2],dtype='object')
+					for i in range(0,self.n):
+						for j in range(0,self.nalpha):
+							tmp[i,j] = self.halpha[i,j,:self.nstep[i]]
+					out[k] = tmp
+				else:
+					out[k] = self.__dict__[k]
 		else:
-			Rcutoff = 1.0
-			Ruse = self.Rmso_full
-		
-		if _n == 1 and FlattenSingleTraces:
-			good = np.where(np.isfinite(self.x) & (Ruse >= Rcutoff))[0]
-			if good.size > 0:
-				if good[0] > 0:
-					if np.isfinite(Ruse[good[0]-1]):
-						good = np.append(good[0]-1,good)
-				if good[-1] < Ruse.size-1:
-					if np.isfinite(Ruse[good[-1]+1]):
-						good = np.append(good,good[-1]+1)
-				
-				
+			out = self.__dict__
+		return out
 
-				self.x = self.x_full[good]
-				self.y = self.y_full[good]
-				self.z = self.z_full[good]
-				self.Bx = self.Bx_full[good]
-				self.By = self.By_full[good]
-				self.Bz = self.Bz_full[good]
-				self.Rmsm = self.Rmsm_full[good]
-				self.Rmso = self.Rmso_full[good]
-				
-				
-				self.nstep = good.size		
-				
-				good = np.where(np.isfinite(self.x) & (self.Rmso >= 1.0))[0]
-				if good[0] > 0:
-					if np.isfinite(self.Rmso[good[0]-1]):
-						good = np.append(good[0]-1,good)
-				if good[-1] < self.Rmso.size-1:
-					if np.isfinite(self.Rmso[good[-1]+1]):
-						good = np.append(good,good[-1]+1)		
-				self.InPlanet = np.ones(self.nstep,dtype='float32')
-				self.InPlanet[good] = 0.0
-			else:
-				self.InPlanet = np.zeros(self.nstep,dtype='float32')
+
+	def Save(self,fname,RemoveNAN=True):
+		'''
+		Save the data in this object to file.
+		
+		Inputs
+		======
+		fname : str
+			Path to the file where this trace will be save on disk.
+		RemoveNAN : bool
+			If True then arrays will be shortened by removing nans.
+			
+		'''
+		out = TraceDict(RemoveNAN)
+		
+		print('Saving file: {:s}'.format(fname))
+		
+		pf.SaveObject(out,fname)
+
+
+	def GetTrace(self,i):
+		'''
+		Return a Trace
+		
+		Inputs
+		======
+		i : int
+			Index of the trace to be returned.
+		
+		Returns
+		=======
+		out : dict 
+			Dictionary containing the following fields:
+			x : float
+				x-coordinate (Rm)
+			y : float
+				y-coordinate (Rm)
+			z : float
+				z-coordinate (Rm)
+			Bx : float
+				x-component of the magnetic field (nT)
+			By : float
+				y-component of the magnetic field (nT)
+			Bz : float
+				z-component of the magnetic field (nT)
+			Rmsm : float
+				radial distance MSM (Rm)
+			Rmso : float
+				radial distance MSO (Rm)
+			Rnorm : float
+				Normalised radial distance (Rnorm = 1.0 at Rmax)
+			s : float
+				Distance along the field line trace (Rm)
+			h : float
+				H_alpha array.
+		
+		'''
+		out = {}
+		out['x'] = self.x[i][:self.nstep[i]]
+		out['y'] = self.y[i][:self.nstep[i]]
+		out['z'] = self.z[i][:self.nstep[i]]
+		out['Bx'] = self.Bx[i][:self.nstep[i]]
+		out['By'] = self.By[i][:self.nstep[i]]
+		out['Bz'] = self.Bz[i][:self.nstep[i]]
+
+		out['Rmsm'] = self.Rmsm[i][:self.nstep[i]]
+		out['Rmso'] = self.Rmso[i][:self.nstep[i]]
+		out['Rnorm'] = self.Rnorm[i][:self.nstep[i]]
+		out['s'] = self.s[i][:self.nstep[i]]
+		if self.nalpha > 0:
+			out['h'] = self.halpha[i,:][:self.nstep[i]]
 		else:
-			for i in range(0,_n):
-				good = np.where(np.isfinite(self.x[i]) & (Ruse[i] >= Rcutoff))[0]
-				bad = np.where((np.isfinite(self.x[i]) == False) | (Ruse[i] < Rcutoff))[0]	
-				gd = np.arange(good.size)
-				bd = np.arange(bad.size) + good.size
-				self.nstep[i] = good.size	
-				self.x[i,gd] = self.x_full[i,good]
-				self.x[i,bd] = np.nan
-				self.y[i,gd] = self.y_full[i,good]
-				self.y[i,bd] = np.nan
-				self.z[i,gd] = self.z_full[i,good]
-				self.z[i,bd] = np.nan				
-				self.Bx[i,gd] = self.Bx_full[i,good]
-				self.Bx[i,bd] = np.nan
-				self.By[i,gd] = self.By_full[i,good]
-				self.By[i,bd] = np.nan
-				self.Bz[i,gd] = self.Bz_full[i,good]
-				self.Bz[i,bd] = np.nan						
-				self.Rmsm[i,gd] = self.Rmsm_full[i,good]
-				self.Rmsm[i,bd] = np.nan						
-				self.Rmso[i,gd] = self.Rmso_full[i,good]
-				self.Rmso[i,bd] = np.nan						
+			out['h'] = None
+			
+		return out
 
-			self.InPlanet = (self.Rmso < 1.0).astype('float32')
-		
-		
-		if AssumeOutsidePlanet:
-			self.InPlanet[:] = 0.0			
-		
 
-		if SmoothSurfaceTransition and _n == 1 and FlattenSingleTraces:
-			# Here we need to add some extra points along the field line in order to  
-			#smooth the transition between inside the planet and outside
-			J = np.where(np.abs(self.InPlanet[1:]-self.InPlanet[:-1]) == 1)[0]
-			J = J[np.where((J != 0) & (J != self.nstep-2))[0]]
-			nJ = J.size
-			if nJ > 0:
-				#get distance along field line
-				s0 = np.zeros(self.nstep,dtype='float32')
-				for i in range(1,self.nstep):
-					s0[i] = s0[i-1] + np.sqrt((self.x[i]-self.x[i-1])**2 + (self.y[i]-self.y[i-1])**2 + (self.z[i]-self.z[i-1])**2)
-				
-				nInsert = 19 # number of extra points to add between steps
-				nstep_new = self.nstep + nJ*nInsert
-				
-				#get new distance array along field line
-				s1 = np.zeros(nstep_new,dtype='float32')
-				new_InPlanet = np.zeros(nstep_new,dtype='float32')
-				p = 0
-				for i in range(0,nJ+1):
-					if i == 0:
-						j0 = 0
-						j1 = J[0]
-					elif i == nJ:
-						j0 = J[-1]+1
-						j1 = self.nstep-1
-					else:
-						j0 = J[i-1]+1
-						j1 = J[i]
-					
-					for j in range(j0,j1+1):
-						s1[p] = s0[j]
-						new_InPlanet[p] = self.InPlanet[j]
-						p += 1
-						
-					if i < nJ:
-						ds = s0[J[i]+1] - s0[J[i]]
-						dip = self.InPlanet[J[i]+1] - self.InPlanet[J[i]]
-						for j in range(0,nInsert):
-							dj = (j+1)/(nInsert+1)
-							s1[p] = s0[J[i]] + ds*dj
-							new_InPlanet[p] = self.InPlanet[J[i]] + dip*(3*dj**2-2*dj**3)
-							p+=1
-				self.InPlanet = new_InPlanet
-				self.s0 = s0
-				self.s1 = s1
-				Params = ['x','y','z','Bx','By','Bz','Rmsm','Rmso']
-				for par in Params:
-					tmp0 = np.copy(getattr(self,par))[0:self.nstep]
-					
-					f = InterpolatedUnivariateSpline(s0,tmp0)
-					tmp1 = f(s1).astype('float32')
-					
-					setattr(self,par,tmp1)
-				self.nstep = nstep_new
+
+	def PlotXZ(self,ind='all',fig=None,maps=[1,1,0,0],label=None,color='black'):
+		'''
+		Plot field lines in the X-Z plane
+		
+		Inputs
+		======
+		ind : int|str
+			Index of trace to plot. Can be scalar or an array. If set 
+			ind='all' then all traces will be plotted.
+		fig : None|pyplot|pyplot.Axes instance
+			None - new figure will be created
+			pyplot - new subplot will be created on existing figure
+			pyplot.Axes - existing subplot will be used
+		maps : list
+			4-element array-like to determine the subplot position,
+			ignored when fig=pyplot.Axes.
+			maps = [xmaps,ymaps,xmap,ymap]
+			xmaps - number of subplots in x-direction
+			ymaps - number of subplots in y-direction
+			xmap - x position of this subplot
+			ymap - y position of this subplot
+		label : None|str
+			Add label to traces.
+		color : str|array-like
+			Colour to plot the field lines
+		'''
+		
+		if ind == 'all':
+			ind = np.arange(self.n)
+		elif np.size(ind) == 1:
+			ind = np.array([ind]).flatten()
+		else:
+			ind = np.array(ind)
+			
+		
+		if fig is None:
+			fig = plt
+			fig.figure()
+		if hasattr(fig,'Axes'):	
+			ax = fig.subplot2grid((maps[1],maps[0]),(maps[3],maps[2]))
+		else:
+			ax = fig
+		
+		
+		x = self.x[ind].T
+		z = self.z[ind].T
+	
+
+		ln = ax.plot(x,z,color=color)
+		if not label is None:
+			hs,ls = GetLegendHandLab(ax)
+			hs.append(ln[0])
+			ls.append(label)
+			ax.legend(hs,ls)
+		
+		ax.set_ylabel('$z_{MSM}$ (R$_M$)')
+		ax.set_xlabel('$x_{MSM}$ (R$_M$)')
+
+		mxx = np.nanmax(x)
+		mxz = np.nanmax(z)
+		mx = 1.1*np.nanmax([mxx,mxz])		
+		ax.set_xlim(-mx,mx)
+		ax.set_ylim(-mx,mx)
+		
+		PlotPlanetXZ(ax,Center=[0.0,0.0,-0.196])
+		ax.set_aspect(1.0)
+
+		return ax
+	
+	def PlotXY(self,ind='all',fig=None,maps=[1,1,0,0],label=None,color='black'):
+		'''
+		Plot field lines in the X-Y plane
+		
+		Inputs
+		======
+		ind : int|str
+			Index of trace to plot. Can be scalar or an array. If set 
+			ind='all' then all traces will be plotted.
+		fig : None|pyplot|pyplot.Axes instance
+			None - new figure will be created
+			pyplot - new subplot will be created on existing figure
+			pyplot.Axes - existing subplot will be used
+		maps : list
+			4-element array-like to determine the subplot position,
+			ignored when fig=pyplot.Axes.
+			maps = [xmaps,ymaps,xmap,ymap]
+			xmaps - number of subplots in x-direction
+			ymaps - number of subplots in y-direction
+			xmap - x position of this subplot
+			ymap - y position of this subplot
+		label : None|str
+			Add label to traces.
+		color : str|array-like
+			Colour to plot the field lines		
+		'''
+		
+		if ind == 'all':
+			ind = np.arange(self.n)
+		elif np.size(ind) == 1:
+			ind = np.array([ind]).flatten()
+		else:
+			ind = np.array(ind)
+			
+		
+		if fig is None:
+			fig = plt
+			fig.figure()
+		if hasattr(fig,'Axes'):	
+			ax = fig.subplot2grid((maps[1],maps[0]),(maps[3],maps[2]))
+		else:
+			ax = fig
+		
+		x = self.x[ind].T
+		y = self.y[ind].T
+
+			
+		ln = ax.plot(y,x,color=color)
+		if not label is None:
+			hs,ls = GetLegendHandLab(ax)
+			hs.append(ln[0])
+			ls.append(label)
+			ax.legend(hs,ls)
+		yl = ax.get_xlim()
+		ax.set_xlim(yl[::-1])
+		
+		ax.set_xlabel('$y_{MSM}$ (R$_M$)')
+		ax.set_ylabel('$x_{MSM}$ (R$_M$)')
+
+		mxx = np.nanmax(x)
+		mxy = np.nanmax(y)
+		mx = 1.1*np.nanmax([mxx,mxy])		
+		ax.set_xlim(mx,-mx)
+		ax.set_ylim(-mx,mx)
+		
+		PlotPlanetXY(ax)
+		ax.set_aspect(1.0)
+		return ax
+	
+	def PlotRhoZ(self,ind='all',fig=None,maps=[1,1,0,0],label=None,color='black'):
+		'''
+		Plot field lines in the rho-Z plane
+
+		
+		Inputs
+		======
+		ind : int|str
+			Index of trace to plot. Can be scalar or an array. If set 
+			ind='all' then all traces will be plotted.
+		fig : None|pyplot|pyplot.Axes instance
+			None - new figure will be created
+			pyplot - new subplot will be created on existing figure
+			pyplot.Axes - existing subplot will be used
+		maps : list
+			4-element array-like to determine the subplot position,
+			ignored when fig=pyplot.Axes.
+			maps = [xmaps,ymaps,xmap,ymap]
+			xmaps - number of subplots in x-direction
+			ymaps - number of subplots in y-direction
+			xmap - x position of this subplot
+			ymap - y position of this subplot
+		label : None|str
+			Add label to traces.
+		color : str|array-like
+			Colour to plot the field lines		
+		'''
+		
+		if ind == 'all':
+			ind = np.arange(self.n)
+		elif np.size(ind) == 1:
+			ind = np.array([ind]).flatten()
+		else:
+			ind = np.array(ind)
+			
+		
+		if fig is None:
+			fig = plt
+			fig.figure()
+		if hasattr(fig,'Axes'):	
+			ax = fig.subplot2grid((maps[1],maps[0]),(maps[3],maps[2]))
+		else:
+			ax = fig
+		
+		x = self.x[ind].T
+		y = self.y[ind].T
+		z = self.z[ind].T
+
+		
+		r = np.sqrt(x**2 + y**2)
+		ln = ax.plot(r,z,color=color)
+		if not label is None:
+			hs,ls = GetLegendHandLab(ax)
+			hs.append(ln[0])
+			ls.append(label)
+			ax.legend(hs,ls)
+		
+		ax.set_ylabel('$z_{MSM}$ (R$_M$)')
+		ax.set_xlabel(r'$\rho_{MSM}$ (R$_M$)')
+
+		mxr = np.nanmax(r)
+		mxz = np.nanmax(z)
+		mx = 1.1*np.nanmax([mxr,mxz])		
+		ax.set_xlim(-mx,mx)
+		ax.set_ylim(-mx,mx)
+		
+		PlotPlanetXZ(ax,NoShadow=True,Center=[0.0,0.0,-0.196])
+		ax.set_aspect(1.0)
+		return ax
+	
+	
+	def PlotHalpha(self,TI='all',AI='all',fig=None,maps=[1,1,0,0]):
+		'''
+		Plot h_alpha (see Singer et al 1982) for a field line.
+		
+		Inputs
+		======
+		TI : int|str
+			Index of trace to plot. TI='all' will plot for all traces.
+		AI : int|str
+			Index of alpha angle to plot for. AI will plot all alphas.
+		fig : None|matplotlib.pyplot|matplotlib.pyplot.Axes
+			None - a new figure will be created with new axes
+			matplotlib.pyplot - existing figure, new axes
+			matplotlib.pyplot.Axes - existing axes instance to be used
+				(maps ignored in the case).
+		maps : list|tuple|numpy.ndarray
+			Four element array-like, denoting subplot position,
+			e.g. [xmaps,ymaps,xmap,ymap]
+				xmaps : number of subplots in x-direction
+				ymaps : number of subplots in y-direction
+				xmap : position index (0 is left)
+				ymap : position index (0 is top)
+		
+		
+		'''
+		if AI == 'all':
+			AI = np.arange(self.nalpha)
+		
+		if np.size(AI) == 1:
+			AI = np.array([AI]).flatten()
+			
+		if TI == 'all':
+			TI = np.arange(self.n)
+		
+		if np.size(TI) == 1:
+			TI = np.array([TI]).flatten()
+			
+		if fig is None:
+			fig = plt
+			fig.figure()
+		if hasattr(fig,'Axes'):	
+			ax = fig.subplot2grid((maps[1],maps[0]),(maps[3],maps[2]))
+		else:
+			ax = fig		
+			
+		for t in TI:
+			for a in AI:
+				ax.plot(self.s[t],self.halpha[t,a],label=r'Trace {:d} $\alpha=${:5.1f}'.format(t,self.alpha[a]))
+
+		ax.legend()
+		ax.set_xlabel(r'$s$ (R$_M$)')
+		ax.set_ylabel(r'$h_{\alpha}$')
+
+		return ax
