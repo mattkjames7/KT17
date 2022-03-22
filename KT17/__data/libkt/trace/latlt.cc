@@ -24,7 +24,7 @@ void LatLT(double x, double y, double z, double *Lat, double *LT) {
 	} else {
 		rho = sqrt(x*x + y*y);
 		Lat[0] = atan2(z,rho)*180.0/M_PI;
-		LT[0] = atan2(-y,-x)*12.0/M_PI;
+		LT[0] = fmod(atan2(-y,-x)*12.0/M_PI + 24.0,24.0);
 	}
 }
 
@@ -51,6 +51,6 @@ void LshellMLT(double x, double y, double z, double *L, double *MLT) {
 		MLT[0] = NAN;
 	} else {
 		L[0] = sqrt(x*x + y*y + z*z);
-		MLT[0] = atan2(-y,-x)*12.0/M_PI;
+		MLT[0] = fmod(atan2(-y,-x)*12.0/M_PI+24.0,24.0);
 	}
 }

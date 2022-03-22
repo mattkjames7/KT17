@@ -47,8 +47,8 @@ void ShieldField(	double x, double y, double z,
 			sinPz = sin(P[k]*z);
 			
 			Bx[0] += Aexpx*pik*cosPy*sinPz;
-			Bx[0] +=-Aexpx*P[i]*sinPy*sinPz;
-			Bx[0] += Aexpx*P[k]*cosPy*cosPz;
+			By[0] +=-Aexpx*P[i]*sinPy*sinPz;
+			Bz[0] += Aexpx*P[k]*cosPy*cosPz;
 		}
 	}
 }

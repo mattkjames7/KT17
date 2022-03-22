@@ -687,9 +687,9 @@ void Trace::RKMTrace(	double x0, double y0, double z0,
 	bool cont = ContinueTrace(x[0],y[0],z[0],&zmso[0],&Rmsm[0],&Rmso[0]);
 	
 	/* trace in one direction */
-	if ((TraceDir_ == 1) || (TraceDir_ == 0)) {
-		/* I think this will trace opposite to the direction of the field,
-		 * into the northern hemisphere */ 
+	if ((TraceDir_ == -1) || (TraceDir_ == 0)) {
+		/* This will trace in the opposite of the field direction,
+		 * towards the southern hemisphere*/ 
 		step = -InitStep_;
 		while ((cont) && (nstep[0] < (MaxLen_/2 - 1))) {
 			Step(	x[nstep[0]-1],y[nstep[0]-1],z[nstep[0]-1],&step,
@@ -716,9 +716,9 @@ void Trace::RKMTrace(	double x0, double y0, double z0,
 	/* trace in the opposite direction */
 	cont = ContinueTrace(x[nstep[0]-1],y[nstep[0]-1],z[nstep[0]-1],
 						&zmso[nstep[0]-1],&Rmsm[nstep[0]-1],&Rmso[nstep[0]-1]);
-	if ((TraceDir_ == -1) || (TraceDir_ == 0)) {
+	if ((TraceDir_ == 1) || (TraceDir_ == 0)) {
 		/* hopefully this will go in the direction fo the field vectors
-		 * towards the southern hemisphere */
+		 * towards the northern hemisphere */
 		step = InitStep_;
 		while ((cont) && (nstep[0] < (MaxLen_ - 1))) {
 			Step(	x[nstep[0]-1],y[nstep[0]-1],z[nstep[0]-1],&step,
@@ -1604,21 +1604,26 @@ void Trace::_InterpPos(	double *xi, double *yi, double *zi,
 	/* calculate the gradients wrt to t and s */
 	double s_targ, ds;
 	double m, mx, my, mz;
+	double c, cx, cy, cz;
 	ds = (s[1] - s[0]);
 	m = ds/(t[1] - t[0]);
+	c = s[0] - m*t[0];
 	mx = (xi[1] - xi[0])/ds;
+	cx = xi[0] - mx*s[0];
 	my = (yi[1] - yi[0])/ds;
+	cy = yi[0] - my*s[0];
 	mz = (zi[1] - zi[0])/ds;
+	cz = zi[0] - mz*s[0];
 		
 	/* this is the distance along the field line where our target
 	 * array (t) crosses the target value (target) */
-	s_targ = s[0] + target*m;
+	s_targ = c + target*m;
 	
 	/* calculate target crossing footprints */
-	xo[0] = xi[0] + mx*s_targ;
-	yo[0] = yi[0] + my*s_targ;
-	zo[0] = zi[0] + mz*s_targ;
-	
+	xo[0] = cx + mx*s_targ;
+	yo[0] = cy + my*s_targ;
+	zo[0] = cz + mz*s_targ;
+
 }
 
 /***********************************************************************
@@ -1649,42 +1654,42 @@ void Trace::_SingleTraceFP(	int I) {
 		
 		/* check if there's an equator crossing */
 		for (i=0;i<nstep_[I]-1;i++) {
-			if ((z_[I][i] >= 0) && (z_[I][i+1] < 0)) {
+			if ((z_[I][i+1] >= 0) && (z_[I][i] < 0)) {
 				eq_ind = i;
 				break;
 			}
 		}
 		
 	
-		/* northern footprints */
+		/* southern footprints */
 		for (i=0;i<nstep_[I]-1;i++) {
-			/* check that we're still in the north */
+			/* check that we're still in the south */
 			if ((Rmsm_[I][i+1] < Rmsm_[I][i]) || (Rmsm_[I][i] >= 2.0)) {
 				break;
 			}
 			
 			/* find where we cross Rmso == 1.0 */
 			if ((Rmso_[I][i] <= 1.0) && (Rmso_[I][i+1] > 1.0)) {
-				n_ind = i;
+				s_ind = i;
 			}
 			
 			/* find where we cross Rmso == 0.832 */
 			if ((Rmso_[I][i] <= 0.832) && (Rmso_[I][i+1] > 0.832)) {
-				nc_ind = i;
+				sc_ind = i;
 			}
 		
 			/* find where we cross Rmsm == 1.0 */
 			if ((Rmsm_[I][i] <= 1.0) && (Rmsm_[I][i+1] > 1.0)) {
-				nv_ind = i;
+				sv_ind = i;
 			}
 			
 			/* find where we cross Rmsm == 0.832 */
 			if ((Rmsm_[I][i] <= 0.832) && (Rmsm_[I][i+1] > 0.832)) {
-				nvc_ind = i;
+				svc_ind = i;
 			}
 		}
 		
-		/* southern footprints */
+		/* northern footprints */
 		for (i=nstep_[I]-2;i>=0;i--) {
 			/* check that we're still in the south */
 			if ((Rmsm_[I][i+1] > Rmsm_[I][i]) || (Rmsm_[I][i] >= 2.0)) {
@@ -1693,22 +1698,22 @@ void Trace::_SingleTraceFP(	int I) {
 			
 			/* find where we cross Rmso == 1.0 */
 			if ((Rmso_[I][i] > 1.0) && (Rmso_[I][i+1] <= 1.0)) {
-				s_ind = i;
+				n_ind = i;
 			}
 			
 			/* find where we cross Rmso == 0.832 */
 			if ((Rmso_[I][i] > 0.832) && (Rmso_[I][i+1] <= 0.832)) {
-				sc_ind = i;
+				nc_ind = i;
 			}
 		
 			/* find where we cross Rmsm == 1.0 */
 			if ((Rmsm_[I][i] > 1.0) && (Rmsm_[I][i+1] <= 1.0)) {
-				sv_ind = i;
+				nv_ind = i;
 			}
 			
 			/* find where we cross Rmsm == 0.832 */
 			if ((Rmsm_[I][i] > 0.832) && (Rmsm_[I][i+1] <= 0.832)) {
-				svc_ind = i;
+				nvc_ind = i;
 			}
 		}
 		
@@ -1732,6 +1737,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][n_ind],&y_[I][n_ind],&zmso_[I][n_ind],
 					&S_[I][n_ind],&Rmso_[I][n_ind],1.0,
 					&xfn_[I],&yfn_[I],&zfn_[I]);	
+	} else {
+		xfn_[I] = NAN;
+		yfn_[I] = NAN;
+		zfn_[I] = NAN;
 	}
 
 	
@@ -1740,6 +1749,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][s_ind],&y_[I][s_ind],&zmso_[I][s_ind],
 					&S_[I][s_ind],&Rmso_[I][s_ind],1.0,
 					&xfs_[I],&yfs_[I],&zfs_[I]);	
+	} else {
+		xfs_[I] = NAN;
+		yfs_[I] = NAN;
+		zfs_[I] = NAN;
 	}
 	
 	/* northern core */
@@ -1747,6 +1760,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][nc_ind],&y_[I][nc_ind],&zmso_[I][nc_ind],
 					&S_[I][nc_ind],&Rmso_[I][nc_ind],0.832,
 					&xfnc_[I],&yfnc_[I],&zfnc_[I]);	
+	} else {
+		xfnc_[I] = NAN;
+		yfnc_[I] = NAN;
+		zfnc_[I] = NAN;
 	}
 
 	
@@ -1755,6 +1772,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][sc_ind],&y_[I][sc_ind],&zmso_[I][sc_ind],
 					&S_[I][sc_ind],&Rmso_[I][sc_ind],0.832,
 					&xfsc_[I],&yfsc_[I],&zfsc_[I]);	
+	} else {
+		xfsc_[I] = NAN;
+		yfsc_[I] = NAN;
+		zfsc_[I] = NAN;
 	}
 	
 	/* northern dipole surface */
@@ -1762,6 +1783,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][nv_ind],&y_[I][nv_ind],&z_[I][nv_ind],
 					&S_[I][nv_ind],&Rmsm_[I][nv_ind],1.0,
 					&xfnv_[I],&yfnv_[I],&zfnv_[I]);	
+	} else {
+		xfnv_[I] = NAN;
+		yfnv_[I] = NAN;
+		zfnv_[I] = NAN;
 	}
 
 	
@@ -1770,6 +1795,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][sv_ind],&y_[I][sv_ind],&z_[I][sv_ind],
 					&S_[I][sv_ind],&Rmsm_[I][sv_ind],1.0,
 					&xfsv_[I],&yfsv_[I],&zfsv_[I]);	
+	} else {
+		xfsv_[I] = NAN;
+		yfsv_[I] = NAN;
+		zfsv_[I] = NAN;
 	}
 	
 	/* northern dipole core */
@@ -1777,6 +1806,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][nvc_ind],&y_[I][nvc_ind],&z_[I][nvc_ind],
 					&S_[I][nvc_ind],&Rmsm_[I][nvc_ind],0.832,
 					&xfnvc_[I],&yfnvc_[I],&zfnvc_[I]);	
+	} else {
+		xfnvc_[I] = NAN;
+		yfnvc_[I] = NAN;
+		zfnvc_[I] = NAN;
 	}
 
 	
@@ -1785,6 +1818,10 @@ void Trace::_SingleTraceFP(	int I) {
 		_InterpPos(	&x_[I][svc_ind],&y_[I][svc_ind],&z_[I][svc_ind],
 					&S_[I][svc_ind],&Rmsm_[I][svc_ind],0.832,
 					&xfsvc_[I],&yfsvc_[I],&zfsvc_[I]);	
+	} else {
+		xfsvc_[I] = NAN;
+		yfsvc_[I] = NAN;
+		zfsvc_[I] = NAN;
 	}
 	
 }

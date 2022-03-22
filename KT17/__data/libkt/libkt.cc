@@ -29,19 +29,36 @@ void ModelField(int n, double *x, double *y, double *z,
 	KTModel kt;	
 	
 	int i, ip;
+	bool inMP;
 	if (nP == 2) {
 		/* this would imply that we are using the KT17 parameters */
 		for (i=0;i<n;i++) {
 			ip = i % lP;
 			kt.SetParams(Params[ip][0],Params[ip][1]);
-			kt.Field(x[i],y[i],z[i],&Bx[i],&By[i],&Bz[i]);
+			/* check that we are within the MP */
+			inMP = WithinMP(x[i],y[i],z[i],kt.Rsm_);
+			if (inMP) {
+				kt.Field(x[i],y[i],z[i],&Bx[i],&By[i],&Bz[i]);
+			} else {
+				Bx[i] = NAN;
+				By[i] = NAN;
+				Bz[i] = NAN;
+			}
 		}
 	} else {
 		/* nP should equal 3 for the KT14 parameters */
 		for (i=0;i<n;i++) {
 			ip = i % lP;
 			kt.SetParams(Params[ip][0],Params[ip][1],Params[ip][2]);
-			kt.Field(x[i],y[i],z[i],&Bx[i],&By[i],&Bz[i]);
+			/* check that we are within the MP */
+			inMP = WithinMP(x[i],y[i],z[i],kt.Rsm_);
+			if (inMP) {
+				kt.Field(x[i],y[i],z[i],&Bx[i],&By[i],&Bz[i]);
+			} else {
+				Bx[i] = NAN;
+				By[i] = NAN;
+				Bz[i] = NAN;
+			}
 		}				
 	}
 	
@@ -185,7 +202,7 @@ void TraceField(int n, double *x0, double *y0, double *z0,
 	T.CalculateTraceFP(FP);
 	
 	/* calculate the Rnorm */
-	T.CalculateTraceRnorm();
+	T.CalculateTraceRnorm(Rnorm);
 	
 	/* alpha if appropriate */
 	if (nalpha > 0) {

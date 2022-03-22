@@ -87,6 +87,9 @@ void DiskField(	double x, double y, double z,
 	ys = y*sc;
 	zs = z*sc;
 
+	/* current disk thickness */
+	d = DiskThickness(xs,ys);
+
 	dddy = deltay*7.0*ys*0.005;
 	dddx = deltax*exp(xs/7.0);
 	
@@ -140,16 +143,16 @@ void DiskField(	double x, double y, double z,
 		dAsdS1 = (1.0/(S1tS2*S1pS2*sqrt(S1pS22 - 4*b[i]*b[i]))) - (As/S1pS22)/S1*(S2*S2 + S1*(3.0*S1 + 4.0*S2));
 		dAsdS2 = (1.0/(S1tS2*S1pS2*sqrt(S1pS22 - 4*b[i]*b[i]))) - (As/S1pS22)/S2*(S1*S1 + S2*(3.0*S2 + 4.0*S1));		
 		
-		
 		dAsdx = dAsdS1*dS1dx + dAsdS2*dS2dx;
 		dAsdy = dAsdS1*dS1dy + dAsdS2*dS2dy;
 		dAsdz = dAsdS1*dS1dz + dAsdS2*dS2dz;
 
-		Bx[0] += -f[i]*x*dAsdz;
-		By[0] += -f[i]*y*dAsdz;
-		Bz[0] += f[i]*(2*As + y*dAsdy + x*dAsdx);
+		Bx[0] += -f[i]*xs*dAsdz;
+		By[0] += -f[i]*ys*dAsdz;
+		Bz[0] += f[i]*(2*As + ys*dAsdy + xs*dAsdx);
 
 	}
+
 }
 
 

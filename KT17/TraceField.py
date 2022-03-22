@@ -3,74 +3,9 @@ from ._CFunctions import _CTraceField
 import PyFileIO as pf
 from .ct import ctBool,ctInt,ctIntPtr,ctDouble,ctDoublePtr,ctDoublePtrPtr
 import matplotlib.pyplot as plt
-
+from .PlotPlanet import PlotPlanetXY, PlotPlanetXZ, PlotPlanetYZ
 
 class TraceField(object):
-	'''
-	Member Functions
-	================
-	TraceDict()
-		Return a dictionary containing all of the traces.
-	Save()
-		Save the trace object contents to a file.
-	GetTrace()
-		Return a dictionary for a single trace.
-	PlotXY()
-		Plot Field line(s) in X-Y plane.
-	PlotXZ()
-		Plot Field line(s) in X-Z plane.
-	PlotRhoZ()
-		Plot Field line(s) in Rho-Z plane.
-	PlotHalpha()
-		Plot H_alpha along a field line.
-	
-	Attributes
-	==========
-	x : float
-		Position along traces (Rm).
-	y : float
-		Position along traces (Rm).
-	z : float
-		Position along traces (Rm).
-	Bx : float
-		Field along traces (nT).
-	By : float
-		Field along traces (nT).
-	Bz : float
-		Field along traces (nT).
-	nstep : int
-		Number of elements in each trace.
-	s : float
-		Distance along each trace (Rm).
-	Rmsm : float
-		Radial coordinate MSM (Rm).
-	Rmso : float
-		Radial coordinate MSO (Rm).
-	Rnorm : float
-		Normalized radius.
-	halpha : float
-		Arrays of halphas for each trace and polarization.
-	Lshell : float
-		L-shell of each field line if it crosses the equator.,
-	MLTe : float
-		Local time at which each field line crosses the magnetic equator.
-	
-	Footprints:
-		Each footprint has a latitude (Lat) and local time (LT), where
-		Lat and LT are followed by N or S (for North or South). 
-		Footprints preceded by "M" are those which sit on a dipole-
-		centered surface, rather than the planet itself. Ones which end 
-		with a "c" are ones which map to the core, or a surface the same
-		size as the core.
-		The list of footprint attributes:
-		'LatN','LTN','LatS','LTS','LatNc','LTNc','LatSc','LTSc',
-		'MLatN','MLTN','MLatS','MLTS','MLatNc','MLTNc','MLatSc','MLTSc'
-		
-	
-		
-	
-	'''
-	
 	def __init__(self,*args,**kwargs):
 		'''
 		Either create a new set of KT14/17 traces, or load from file.
@@ -140,6 +75,66 @@ class TraceField(object):
 		alpha : float
 			Polarization angles to calculate h_alpha for (degrees), 
 			0 degrees is toroidal, 90 is poloidal.
+
+		Member Functions
+		================
+		TraceDict()
+			Return a dictionary containing all of the traces.
+		Save()
+			Save the trace object contents to a file.
+		GetTrace()
+			Return a dictionary for a single trace.
+		PlotXY()
+			Plot Field line(s) in X-Y plane.
+		PlotXZ()
+			Plot Field line(s) in X-Z plane.
+		PlotRhoZ()
+			Plot Field line(s) in Rho-Z plane.
+		PlotHalpha()
+			Plot H_alpha along a field line.
+		
+		Attributes
+		==========
+		x : float
+			Position along traces (Rm).
+		y : float
+			Position along traces (Rm).
+		z : float
+			Position along traces (Rm).
+		Bx : float
+			Field along traces (nT).
+		By : float
+			Field along traces (nT).
+		Bz : float
+			Field along traces (nT).
+		nstep : int
+			Number of elements in each trace.
+		s : float
+			Distance along each trace (Rm).
+		Rmsm : float
+			Radial coordinate MSM (Rm).
+		Rmso : float
+			Radial coordinate MSO (Rm).
+		Rnorm : float
+			Normalized radius.
+		halpha : float
+			Arrays of halphas for each trace and polarization.
+		Lshell : float
+			L-shell of each field line if it crosses the equator.,
+		MLTe : float
+			Local time at which each field line crosses the magnetic equator.
+		
+		Footprints:
+			Each footprint has a latitude (Lat) and local time (LT), where
+			Lat and LT are followed by N or S (for North or South). 
+			Footprints preceded by "M" are those which sit on a dipole-
+			centered surface, rather than the planet itself. Ones which end 
+			with a "c" are ones which map to the core, or a surface the same
+			size as the core.
+			The list of footprint attributes:
+			'LatN','LTN','LatS','LTS','LatNc','LTNc','LatSc','LTSc',
+			'MLatN','MLTN','MLatS','MLTS','MLatNc','MLTNc','MLatSc','MLTSc'
+			
 		'''
 		
 		#check if we are loading from file, or creating new traces
@@ -180,7 +175,7 @@ class TraceField(object):
 		self.x0 = ctDoublePtr(args[0])
 		self.y0 = ctDoublePtr(args[1])
 		self.z0 = ctDoublePtr(args[2])
-		self.n = ctInt(np.size(x0))
+		self.n = ctInt(np.size(self.x0))
 
 		#figure out what parameters we have and which to pass to the C code
 		kt14 = np.array(['Rsm' in kwargs,'t1' in kwargs,'t2' in kwargs])
@@ -218,12 +213,12 @@ class TraceField(object):
 		_,_nP = self.Params.shape
 		
 		#switch to three arrays
-		_P0 = Params[:,0]
-		_P1 = Params[:,1]
-		if nP == 2:
+		_P0 = ctDoublePtr(self.Params[:,0])
+		_P1 = ctDoublePtr(self.Params[:,1])
+		if _nP == 2:
 			_P2 = np.zeros(self.n,dtype='float64')
 		else:
-			_P2 = Params[:,2]
+			_P2 = ctDoublePtr(self.Params[:,2])
 
 		#some config options
 		self.BoundMP = ctBool(kwargs.get('MPStop',True))
@@ -231,7 +226,7 @@ class TraceField(object):
 		self.BoundSurface = ctInt(kwargs.get('EndSurface',6))
 		
 		self.MaxLen = ctInt(kwargs.get('MaxLen',1000))
-		self.MaxStep = ctDouble(kwargs.get('MaxStep',0.05)
+		self.MaxStep = ctDouble(kwargs.get('MaxStep',0.05))
 		self.InitStep = ctDouble(kwargs.get('InitStep',0.01))
 		self.MinStep = ctDouble(kwargs.get('MinStep',0.001))
 		self.ErrMax = ctDouble(kwargs.get('ErrMax',0.0001))
@@ -258,22 +253,22 @@ class TraceField(object):
 		self.Rmso = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
 		self.Rnorm = np.zeros((self.n,self.MaxLen),dtype="float64") + np.nan
 		self.halpha = np.zeros((self.n*self.MaxLen*self.nalpha,),dtype="float64") + np.nan #hopefully this will be reshaped to (n,nalpha,MaxLen)
-		self.FP = np.zeros((self.n,7),dtype="float64")
+		self.FP = np.zeros((self.n,18),dtype="float64")
 
-		_x = _ptr2D(self.x)
-		_y = _ptr2D(self.y)
-		_z = _ptr2D(self.z)
+		_x = ctDoublePtrPtr(self.x)
+		_y = ctDoublePtrPtr(self.y)
+		_z = ctDoublePtrPtr(self.z)
 
-		_Bx = _ptr2D(self.Bx)
-		_By = _ptr2D(self.By)
-		_Bz = _ptr2D(self.Bz)
+		_Bx = ctDoublePtrPtr(self.Bx)
+		_By = ctDoublePtrPtr(self.By)
+		_Bz = ctDoublePtrPtr(self.Bz)
 	
 		
-		_s = _ptr2D(self.s)
-		_Rmsm = _ptr2D(self.Rmsm)
-		_Rmso = _ptr2D(self.Rmso)
-		_Rnorm = _ptr2D(self.Rnorm)		
-		_FP = _ptr2D(self.FP)
+		_s = ctDoublePtrPtr(self.s)
+		_Rmsm = ctDoublePtrPtr(self.Rmsm)
+		_Rmso = ctDoublePtrPtr(self.Rmso)
+		_Rnorm = ctDoublePtrPtr(self.Rnorm)		
+		_FP = ctDoublePtrPtr(self.FP)
 	
 		#call the C++ function 
 		_CTraceField(	self.n,self.x0,self.y0,self.z0,
@@ -359,7 +354,7 @@ class TraceField(object):
 			If True then arrays will be shortened by removing nans.
 			
 		'''
-		out = TraceDict(RemoveNAN)
+		out = self.TraceDict(RemoveNAN)
 		
 		print('Saving file: {:s}'.format(fname))
 		
@@ -468,11 +463,13 @@ class TraceField(object):
 			ax = fig
 		
 		
-		x = self.x[ind].T
-		z = self.z[ind].T
+		x = self.x[ind]
+		z = self.z[ind]
 	
-
-		ln = ax.plot(x,z,color=color)
+		mx = 1.5
+		for i in range(0,ind.size):
+			ln = ax.plot(x[i],z[i],color=color)
+			mx = np.nanmax([mx,np.abs(x[i]).max(),np.abs(z[i]).max()])
 		if not label is None:
 			hs,ls = GetLegendHandLab(ax)
 			hs.append(ln[0])
@@ -482,13 +479,11 @@ class TraceField(object):
 		ax.set_ylabel('$z_{MSM}$ (R$_M$)')
 		ax.set_xlabel('$x_{MSM}$ (R$_M$)')
 
-		mxx = np.nanmax(x)
-		mxz = np.nanmax(z)
-		mx = 1.1*np.nanmax([mxx,mxz])		
+		mx = 1.1*mx	
 		ax.set_xlim(-mx,mx)
 		ax.set_ylim(-mx,mx)
 		
-		PlotPlanetXZ(ax,Center=[0.0,0.0,-0.196])
+		PlotPlanetXZ(ax,Center=[0.0,0.0,-0.196],NoonTop=False)
 		ax.set_aspect(1.0)
 
 		return ax
@@ -536,11 +531,15 @@ class TraceField(object):
 		else:
 			ax = fig
 		
-		x = self.x[ind].T
-		y = self.y[ind].T
+		x = self.x[ind]
+		y = self.y[ind]
 
 			
-		ln = ax.plot(y,x,color=color)
+		mx = 1.5
+		for i in range(0,ind.size):
+			ln = ax.plot(y[i],x[i],color=color)
+			mx = np.nanmax([mx,np.abs(x[i]).max(),np.abs(y[i]).max()])
+
 		if not label is None:
 			hs,ls = GetLegendHandLab(ax)
 			hs.append(ln[0])
@@ -552,9 +551,8 @@ class TraceField(object):
 		ax.set_xlabel('$y_{MSM}$ (R$_M$)')
 		ax.set_ylabel('$x_{MSM}$ (R$_M$)')
 
-		mxx = np.nanmax(x)
-		mxy = np.nanmax(y)
-		mx = 1.1*np.nanmax([mxx,mxy])		
+
+		mx = 1.1*mx
 		ax.set_xlim(mx,-mx)
 		ax.set_ylim(-mx,mx)
 		
@@ -606,13 +604,16 @@ class TraceField(object):
 		else:
 			ax = fig
 		
-		x = self.x[ind].T
-		y = self.y[ind].T
-		z = self.z[ind].T
+		x = self.x[ind]
+		y = self.y[ind]
+		z = self.z[ind]
 
 		
-		r = np.sqrt(x**2 + y**2)
-		ln = ax.plot(r,z,color=color)
+		r = np.array([np.sqrt(x[i]**2 + y[i]**2) for i in range(0,x.shape[0])],dtype='object')
+		mx = 1.5
+		for i in range(0,ind.size):
+			ln = ax.plot(r[i],z[i],color=color)
+			mx = np.nanmax([mx,np.abs(r[i]).max(),np.abs(z[i]).max()])
 		if not label is None:
 			hs,ls = GetLegendHandLab(ax)
 			hs.append(ln[0])
@@ -622,13 +623,12 @@ class TraceField(object):
 		ax.set_ylabel('$z_{MSM}$ (R$_M$)')
 		ax.set_xlabel(r'$\rho_{MSM}$ (R$_M$)')
 
-		mxr = np.nanmax(r)
-		mxz = np.nanmax(z)
-		mx = 1.1*np.nanmax([mxr,mxz])		
+
+		mx = 1.1*mx		
 		ax.set_xlim(-mx,mx)
 		ax.set_ylim(-mx,mx)
 		
-		PlotPlanetXZ(ax,NoShadow=True,Center=[0.0,0.0,-0.196])
+		PlotPlanetXZ(ax,NoShadow=True,Center=[0.0,0.0,-0.196],NoonTop=False)
 		ax.set_aspect(1.0)
 		return ax
 	

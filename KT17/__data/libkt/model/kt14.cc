@@ -36,7 +36,7 @@ void KT14(	double x, double y, double z,
 	yk = y*k;
 	zk = z*k;
 	k3 = k*k*k;
-
+	
 	/* get each of the field components */
 	double Bxi, Byi, Bzi, Bxd, Byd, Bzd, Bxq, Byq, Bzq;
 	Dipole(xk,yk,zk,&Bxi,&Byi,&Bzi);

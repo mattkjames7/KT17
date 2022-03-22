@@ -36,7 +36,7 @@ void DipoleField(	double x, double y, double z,
 	double r, r2, r3;
 	double rhatx, rhaty, rhatz;	
 	r2 = x*x + y*y + z*z;
-	r = sqrt(r);
+	r = sqrt(r2);
 	r3 = r*r2;
 	rhatx = x/r;
 	rhaty = y/r;
@@ -53,12 +53,11 @@ void DipoleField(	double x, double y, double z,
 	
 	/* another constant M/r**3 used for each component */
 	double M_r3 = mu/r3;
-	
+
 	/* now calculate each component B = M*(3*mhat.rhat - mhat)/r**3 */
 	Bx[0] = M_r3*mdotr3*rhatx;
 	By[0] = M_r3*mdotr3*rhaty;
 	Bz[0] = M_r3*(mdotr3*rhatz - 1.0);
-
 }
 
 /***********************************************************************

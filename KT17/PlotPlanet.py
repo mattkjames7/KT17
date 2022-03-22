@@ -1,12 +1,12 @@
 import numpy as np
 
-def PlotPlanetXZ(fig,R=1.0,Center=[0.0,0.0,0.0],zorder=10,NoShadow=False,NoonTop=True):
+def PlotPlanetXZ(ax,R=1.0,Center=[0.0,0.0,0.0],zorder=10,NoShadow=False,NoonTop=True):
 	'''
 	Adds a planet to a plot in the X-Z plane.
 	
 	Inputs
 	======
-	fig : obj
+	ax : obj
 		Either a matplotlib.pyplot or matplotlib.pyplot.axes instance
 	R : float
 		Radius of the planet.
@@ -25,17 +25,16 @@ def PlotPlanetXZ(fig,R=1.0,Center=[0.0,0.0,0.0],zorder=10,NoShadow=False,NoonTop
 	a = 2*np.pi*np.arange(361,dtype='float32')/360
 	x = R*np.sin(a) + Center[0]
 	z = R*np.cos(a) + Center[2]
-	
 	if NoonTop:	
-		fig.fill(z,x,color=[1.0,1.0,1.0],zorder=zorder)
-		fig.plot(z,x,color=[0,0,0],zorder=zorder+1)
+		ax.fill(z,x,color=[1.0,1.0,1.0],zorder=zorder)
+		ax.plot(z,x,color=[0,0,0],zorder=zorder+1)
 		if NoShadow == False:
-			fig.fill(z[180:360],x[180:360],color=[0.0,0.0,0.0],zorder=zorder+1)
+			ax.fill(z[180:360],x[180:360],color=[0.0,0.0,0.0],zorder=zorder+1)
 	else:
-		fig.fill(x,z,color=[1.0,1.0,1.0],zorder=zorder)
-		fig.plot(x,z,color=[0,0,0],zorder=zorder+1)
+		ax.fill(x,z,color=[1.0,1.0,1.0],zorder=zorder)
+		ax.plot(x,z,color=[0,0,0],zorder=zorder+1)
 		if NoShadow == False:
-			fig.fill(x[180:360],z[180:360],color=[0.0,0.0,0.0],zorder=zorder+1)
+			ax.fill(x[180:360],z[180:360],color=[0.0,0.0,0.0],zorder=zorder+1)
 
 
 def PlotPlanetXY(fig,R=1.0,Center=[0.0,0.0,0.0],zorder=10,NoShadow=False,NoonTop=True):

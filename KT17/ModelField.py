@@ -60,39 +60,39 @@ def ModelField(x, y, z, **kwargs):
 	
 	if kt14.all():
 		#use just kt14 parameters
-		_Params = np.zeros((n_,3),dtype='float64')
+		_Params = np.zeros((_n,3),dtype='float64')
 		_Params[:,0] = kwargs['Rsm']
 		_Params[:,1] = kwargs['t1']
 		_Params[:,2] = kwargs['t2']
 	elif kt17.all():
 		#use only kt17 parameters
-		_Params = np.zeros((n_,2),dtype='float64')
+		_Params = np.zeros((_n,2),dtype='float64')
 		_Params[:,0] = kwargs['Rsun']
 		_Params[:,1] = kwargs['DistIndex']
 	elif kt14.any():
 		#use some kt14 parameters + defaults
-		_Params = np.zeros((n_,3),dtype='float64')
+		_Params = np.zeros((_n,3),dtype='float64')
 		_Params[:,0] = kwargs.get('Rsm',1.42)
 		_Params[:,1] = kwargs.get('t1',7.37)
 		_Params[:,2] = kwargs.get('t2',2.16)		
 	elif kt17.any():
 		#use some kt17 parameters + defaults
-		_Params = np.zeros((n_,2),dtype='float64')
+		_Params = np.zeros((_n,2),dtype='float64')
 		_Params[:,0] = kwargs.get('Rsun',0.427)
 		_Params[:,1] = kwargs.get('DistIndex',50.0)		
 	else:
 		#use defaults
-		_Params = np.zeros((n_,3),dtype='float64')
+		_Params = np.zeros((_n,3),dtype='float64')
 		_Params[:,0] = 1.42
 		_Params[:,1] = 7.37
 		_Params[:,2] = 2.16		
 
 	_lP,_nP = _Params.shape
-	
+
 	#do some ctypes magic
 	_Params2D = ctDoublePtrPtr(_Params)
 	
 	#call the model code
-	_CModelField(_n, _x, _y, _z,_nL, _nP, _Params2D, _Bx, _By, _Bz)
+	_CModelField(_n, _x, _y, _z,_lP, _nP, _Params2D, _Bx, _By, _Bz)
 
 	return (_Bx,_By,_Bz)
