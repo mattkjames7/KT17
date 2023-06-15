@@ -299,6 +299,10 @@ class TraceField(object):
 		#reshape halpha
 		if self.nalpha > 0 :
 			self.halpha = self.halpha.reshape(self.n,self.nalpha,self.MaxLen)
+
+
+		#calcualte the length of each field line
+		self.FlLen = np.array([s[self.nstep[i]-1] for i,s in enumerate(self.s)])
 	
 	def TraceDict(self,RemoveNAN=True):
 		'''
