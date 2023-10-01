@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "model/ktmodel.h"
 #include "trace/trace.h"
-#include "model/dipole.cc"
+#include "model/dipole.h"
 
 
 extern "C" {
@@ -137,7 +137,7 @@ extern "C" {
 					double **S, double **Rnorm, double **FP,
 					int nalpha, double *alpha, double *halpha);
 
-	void dipole(int n, double *x, double *y, double *z,
+	void dipoleWrapper(int n, double *x, double *y, double *z,
 			double *Bx, double *By, double *Bz);
 }
 #endif

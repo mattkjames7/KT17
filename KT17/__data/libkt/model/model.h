@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "ktmodel.h"
 
-#endif
 
 /* this object will be configured for each trace */
 extern KTModel ktmodel;
@@ -28,3 +27,4 @@ extern KTModel ktmodel;
  * ********************************************************************/
 void ModelField(double x, double y, double z,	
 				double *Bx, double *By, double *Bz);
+#endif

@@ -215,12 +215,12 @@ void TraceField(int n, double *x0, double *y0, double *z0,
 
 
 
-void dipole(int n, double *x, double *y, double *z,
+void dipoleWrapper(int n, double *x, double *y, double *z,
 			double *Bx, double *By, double *Bz) {
 
 	int i;
 	for (i=0;i<n;i++) {
-		DipoleField(x[i],y[i],z[i],&Bx[i],&By[i],&Bz[i])
+		DipoleField(x[i],y[i],z[i],&Bx[i],&By[i],&Bz[i]);
 	}
 
 }

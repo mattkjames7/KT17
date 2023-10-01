@@ -3,7 +3,7 @@ from ._CFunctions import _Cdipole
 
 def dipoleField(x,y,z):
 
-    n = np.size(x).astype('int32')
+    n = np.int32(np.size(x))
     if n == 1:
         _x = np.zeros(1,dtype='float64') + x
         _y = np.zeros(1,dtype='float64') + y

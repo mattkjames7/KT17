@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#endif
 
 
 /***********************************************************************
@@ -30,3 +29,4 @@
 void ShieldField(	double x, double y, double z,
 					int n, const double A[], const double P[],
 					double *Bx, double *By, double *Bz);
+#endif

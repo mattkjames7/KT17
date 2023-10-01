@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "kt14.h"
 
-#endif
+
 
 
 /***********************************************************************
@@ -77,3 +77,5 @@ void KT17Params(	double Rsm, double t1, double t2,
 void KT17(	double x, double y, double z,
 			double Rsun, double DistIndex, 
 			double *Bx, double *By, double *Bz);
+
+#endif

@@ -5,7 +5,6 @@
 #include <math.h>
 #include "shield.h"
 
-#endif
 
 /***********************************************************************
  * NAME : 		double QHThickness(x,y)
@@ -111,3 +110,4 @@ void QHSheetShield(	double x, double y, double z,
  * ********************************************************************/
 void QHSheet(	double x, double y, double z, double t2,
 				double *Bx, double *By, double *Bz);
+#endif

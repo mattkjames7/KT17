@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include "shield.h"
-#endif
 
 /***********************************************************************
  * NAME : 		void DipoleField(x,y,z,Bx,By,Bz)
@@ -70,3 +69,4 @@ void DipoleShield(	double x, double y, double z,
  * ********************************************************************/
 void Dipole(	double x, double y, double z, 
 				double *Bx, double *By, double *Bz);
+#endif

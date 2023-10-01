@@ -6,7 +6,6 @@
 #include "disk.h"
 #include "qhsheet.h"
 
-#endif
 
 
 /***********************************************************************
@@ -35,3 +34,4 @@
 void KT14(	double x, double y, double z,
 			double Rsm, double t1, double t2, 
 			double *Bx, double *By, double *Bz);
+#endif
