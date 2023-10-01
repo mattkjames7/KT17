@@ -72,3 +72,14 @@ _CTraceField.argtypes = [	c_int,				#n
 							c_double_ptr]		#halpha
 _CTraceField.restype = None
 
+_Cdipole = libkt17.dipole
+_Cdipole.restype = None
+_Cdipole.argtypes = [
+    c_int,
+    c_double_ptr,
+    c_double_ptr,
+    c_double_ptr,
+    c_double_ptr,
+    c_double_ptr,
+    c_double_ptr,
+]
