@@ -1,0 +1,3 @@
+[submodule "KT17/__data/libkt"]
+	path = KT17/__data/libkt
+	url = https://github.com/mattkjames7/libkt
