@@ -2,111 +2,76 @@ import numpy as np
 import os
 import subprocess
 import ctypes
+import platform
+import fnmatch
 
-def _LibPath():
-	'''
-	Return a path to the C++ library
-	
-	Returns
-	=======
-	path : str
-		path to the library file.
-	
-	'''
-	return os.path.dirname(__file__)+"/__data/libkt/"
+def getLibFilename(isShort=False):
+    """
+    Return library filename string
+    
+    Inputs
+    ======
+    isShort : bool 
+        If False return filename with full path, if True return only filename
+        default - False
+    
+    Returns
+    =======
+    libFilename    : str
+        Filename of the source library
 
-def _LibName(WithPath=False):
-	'''
-	Return the name of the library.
-	
-	Inputs
-	======
-	WithPath : bool
-		If True then the fuull path to the library will be included.
-		
-	Returns
-	=======
-	libpath : str
-		Library name.
-	
-	'''
-	if WithPath:
-		path = _LibPath()
-	else:
-		path = ''
-		
-	if(os.name == 'posix'):
-		ext = "so"
-	elif(os.name == 'nt'):
-		ext = "dll"
-	else:
-		raise Exception("The Operating System is not supported")
-	
-	return path + 'libkt.' + ext
+    """
+    if(isShort):
+        libFilename = "libkt."
+    else:
+        libFilename = os.path.dirname(__file__) + "/__data/libkt/lib/libkt."
+
+    systype = platform.system()
+    if systype == 'Linux':
+        extension = "so"
+    elif systype == 'Windows':
+        extension = "dll"
+    elif systype == 'Darwin':
+        extension = 'dylib'
+    else:
+        raise Exception("The Operating System is not supported")
+    
+    return libFilename + extension
 
 
-def _LibExists():
-	'''
-	Check if the library file exists.
-	
-	Returns
-	=======
-	exists : bool
-		True if the file exists
-	'''
-	return os.path.isfile(_LibName(True))
-	
-def _GetLib():
-	'''	
-	Return an instance of the C++ library
-	
-	Returns
-	=======
-	lib : ctypes.CDLL
-		C++ library containing the KT14/17 code
-	'''
-	fname = _LibName(True)
-	
-	try:
-		lib = ctypes.CDLL(fname)
-	except:
-		print("Importing C++ library failed. Attempting recompilation...")
-		_CompileSource()
-		lib = ctypes.CDLL(fname)
-		
-	return lib
+def checkLibExists():
+    """Check if library file exist, and start compilation script if not."""
+    if not os.path.isfile(getLibFilename()):
+        print(getLibFilename(isShort=True)+" not found, try reinstalling")
+        raise SystemError
 
 
-def _CompileSource():
-	'''
-	Attempt to recompile the library if needed.
-	
-	'''
-	
-	if(os.name=='posix'):
-		#check if we need root or not!
-		path = os.path.dirname(__file__)
-		if '/usr/local/' in path:
-			sudo = 'sudo '
-		else:
-			sudo = ''
+def getWindowsSearchPaths():
+    '''Scan the directories within PATH and look for std C++ libs'''
+    paths = os.getenv('PATH')
+    paths = paths.split(';')
 
-		CWD = os.getcwd()
-		os.chdir(os.path.dirname(__file__)+"/__data/libkt/")
-		os.system(sudo+'make')
-		os.chdir(CWD)
-	elif(os.name=='nt'):
-		CWD = os.getcwd()
-		os.chdir(os.path.dirname(__file__)+"/__data/libkt/")
-		compile = subprocess.Popen("compile.bat")
-		compile.communicate()
-		comperr = compile.returncode
-		if(comperr==6):
-			raise Exception("There is no GCC compiler in PATH. Unable to compile C source files.")
-		if(comperr==7):
-			raise Exception("There is no GFORTRAN compiler in PATH. Unable to compile FORTRAN source files.")
-		if(comperr==8):
-			raise Exception("An error occurred during compilation.")
-		os.chdir(CWD)
-	else:
-		raise Exception("The Operating System is not supported")	
+    pattern = 'libstdc++*.dll'
+
+    out = []
+    for p in paths:
+        if os.path.isdir(p):
+            files = os.listdir(p)
+            mch = any(fnmatch.fnmatch(f,pattern) for f in files)
+            if mch:
+                out.append(p)
+    
+    return out
+
+
+
+def addWindowsSearchPaths():
+
+    paths = getWindowsSearchPaths()
+    for p in paths:
+        if os.path.isdir(p):
+            os.add_dll_directory(p)
+
+    
+
+

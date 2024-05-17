@@ -1,6 +1,23 @@
 import setuptools
 from setuptools.command.install import install
+from setuptools.command.build_py import build_py
+import subprocess
 import os
+import platform
+
+class CustomBuild(build_py):
+    def run(self):
+        self.execute(self.target_build, ())
+        build_py.run(self)
+
+    def target_build(self):
+        if platform.system() == 'Windows':
+            cwd = os.getcwd()
+            os.chdir('KT17/__data/libkt/')
+            subprocess.check_call(['cmd','/c','compile.bat'])
+            os.chdir(cwd)
+        else:
+            subprocess.check_call(['make', '-C', 'KT17/__data/libkt'])
 
 
 with open("README.md", "r") as fh:
@@ -41,6 +58,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/mattkjames7/KT17",
     packages=setuptools.find_packages(),
+    package_data={'testmodule2': ['**/*']},
+    cmdclass={'build_py': CustomBuild},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
