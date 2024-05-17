@@ -1,10 +1,30 @@
 import numpy as np
 from .ct import c_char_p,c_bool,c_bool_ptr,c_int,c_int_ptr
 from .ct import c_float,c_float_ptr,c_double,c_double_ptr,c_double_ptr_ptr
-from ._CppLib import _GetLib
+from ._CppLib import  getLibFilename,addWindowsSearchPaths
+import os
+import platform
+import ctypes
+
+modulePath = os.path.dirname(__file__)
+
 
 #try loading the C++ library
-libkt17 = _GetLib()
+try:
+	if platform.system() == 'Darwin':
+		cwd = os.getcwd()
+		os.chdir(modulePath + '/__data/libkt/lib/')
+		libkt17 = ctypes.CDLL(getLibFilename(True))
+		os.chdir(cwd)
+	elif platform.system() == 'Windows':
+		addWindowsSearchPaths()
+		libkt17 = ctypes.CDLL(getLibFilename())
+	else:
+		libkt17 = ctypes.CDLL(getLibFilename())
+except:
+	print('Importing '+getLibFilename(isShort=True)+' failed, please reinstall')
+	raise SystemError
+
 
 
 _CWithinMP = libkt17.WithinMP
